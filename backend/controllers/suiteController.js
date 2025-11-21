@@ -33,19 +33,19 @@ const getSuiteById = async (req, res) => {
 // @access  Private/Admin
 const createSuite = async (req, res) => {
   try {
-    const { name, type, price, description, facilities } = req.body;
+    //Ambil 'location' dari input user
+    const { name, location, type, price, description, facilities } = req.body;
     
-    // Ambil path gambar jika ada yang diupload
     const image = req.file ? `/${req.file.path.replace(/\\/g, "/")}` : ''; 
-    // (.replace itu fix bug path miring di Windows)
 
     const suite = new Suite({
       name,
+      location, // BARU: Simpan lokasi ke database
       type,
       price,
       description,
-      facilities: facilities ? facilities.split(',') : [], // Ubah "WiFi,AC" jadi ["WiFi", "AC"]
-      images: [image], // Sementara 1 gambar dulu biar simpel
+      facilities: facilities ? facilities.split(',') : [],
+      images: [image],
       status: 'available'
     });
 

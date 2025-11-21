@@ -1,70 +1,55 @@
 const mongoose = require('mongoose');
 
-// Membuat Schema (Cetakan) untuk Data Kamar/Suite
 const suiteSchema = new mongoose.Schema({
-  
-  // 1. NAMA SUITE (Contoh: Royal Ocean View)
   name: {
     type: String,
-    required: [true, 'Nama suite wajib diisi'],
-    trim: true, // PENTING: Menghapus spasi berlebih. " Deluxe Room " jadi "Deluxe Room"
-    maxlength: [100, 'Nama terlalu panjang, maksimal 100 huruf']
+    required: [true, 'Judul properti wajib diisi'], // Ganti istilah "Nama Kamar" jadi "Judul Properti"
+    trim: true,
+    maxlength: [100, 'Nama tidak boleh lebih dari 100 karakter']
+  },
+  
+  // BARU: Lokasi Properti 
+  location: {
+    type: String,
+    required: [true, 'Lokasi properti wajib diisi (Misal: Bali, Jakarta)'],
+    trim: true
   },
 
-  // 2. TIPE KAMAR
   type: {
     type: String,
     required: true,
-    // Membatasi input agar data seragam. Tidak boleh ada yang nulis "Deluks" atau "standar" (typo).
-    enum: ['Standard', 'Deluxe', 'Suite', 'Family'], 
-    default: 'Standard'
+    // BARU: Tipe Akomodasi ala Airbnb
+    enum: ['Apartment', 'Villa', 'House', 'Hotel', 'Resort', 'Glamping'], 
+    default: 'Hotel'
   },
-
-  // 3. HARGA PER MALAM
+  
   price: {
-    type: Number, // Harus angka, tidak boleh huruf
-    required: [true, 'Harga wajib diisi'],
-    min: [0, 'Harga tidak boleh minus/negatif'] // Mencegah kesalahan input harga
+    type: Number,
+    required: [true, 'Harga per malam wajib diisi'],
+    min: [0, 'Harga tidak boleh negatif']
   },
-
-  // 4. DESKRIPSI LENGKAP
   description: {
     type: String,
-    required: [true, 'Deskripsi wajib diisi agar tamu tertarik']
+    required: [true, 'Deskripsi wajib diisi']
   },
-
-  // 5. FASILITAS (Array of Strings)
-  // Tanda [] artinya bisa menampung BANYAK data.
-  // Contoh data: ["WiFi Kencang", "Sarapan Gratis", "Kolam Renang"]
   facilities: {
-    type: [String], 
+    type: [String],
     required: false
   },
-
-  // 6. KAPASITAS TAMU
   capacity: {
     type: Number,
     required: true,
-    default: 2 // Standar hotel biasanya untuk 2 orang
+    default: 2
   },
-
-  // 7. FOTO-FOTO KAMAR
-  // Array String: Menyimpan kumpulan link/URL foto
   images: {
-    type: [String], 
-    default: [] 
+    type: [String],
+    default: []
   },
-
-  // 8. STATUS KETERSEDIAAN
-  // Ini penting untuk filter pencarian. Kamar 'maintenance' tidak boleh muncul di hasil pencarian user.
   status: {
     type: String,
     enum: ['available', 'booked', 'maintenance'],
     default: 'available'
   }
-
-}, { 
-  timestamps: true // Mencatat kapan kamar ini ditambahkan ke sistem
-});
+}, { timestamps: true });
 
 module.exports = mongoose.model('Suite', suiteSchema);
