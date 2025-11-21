@@ -1,6 +1,6 @@
 import { useContext, useState, useEffect } from "react";
 import { Routes, Route, Link } from "react-router-dom";
-import axios from "axios"; // JANGAN LUPA IMPORT AXIOS
+import axios from "axios"; 
 import { AuthContext } from "./context/AuthContext";
 import Navbar from "./components/Navbar";
 import Hero from "./components/Hero";
@@ -9,6 +9,10 @@ import Login from "./pages/auth/Login";
 //--- HALAMAN ADMIN ---//
 import ManageSuites from "./pages/admin/ManageSuites";
 import AddSuite from "./pages/admin/AddSuite";
+import Bookings from "./pages/admin/Bookings";
+
+//--- HALAMAN DETAIL (Akses Publik) ---//
+import SuiteDetail from "./pages/SuiteDetail";
 
 import { 
   LayoutDashboard, 
@@ -18,13 +22,13 @@ import {
   MapPin, 
   Star, 
   ArrowRight,
-  Loader2 // Icon loading
+  Loader2 
 } from "lucide-react";
 
 // --- 1. KOMPONEN HOME (DASHBOARD) ---
 const Home = () => {
   const { user } = useContext(AuthContext);
-  const [suites, setSuites] = useState([]); // Tempat simpan data kamar
+  const [suites, setSuites] = useState([]); 
   const [loading, setLoading] = useState(true);
 
   // AMBIL DATA DARI BACKEND SAAT HALAMAN DIBUKA
@@ -32,7 +36,7 @@ const Home = () => {
     const fetchSuites = async () => {
       try {
         const { data } = await axios.get("/api/suites");
-        setSuites(data); // Simpan ke state
+        setSuites(data); 
       } catch (error) {
         console.error("Gagal ambil data", error);
       } finally {
@@ -82,7 +86,18 @@ const Home = () => {
                       </div>
                     </div>
                   </Link>
-                  {/* ... Menu lain sama seperti sebelumnya ... */}
+
+                   <Link to="/admin/bookings">
+                    <div className="p-4 bg-indigo-50 rounded-xl border border-indigo-100 cursor-pointer active:scale-95 hover:shadow-md transition group flex items-center gap-3 h-full">
+                      <div className="bg-indigo-500 w-10 h-10 rounded-lg flex items-center justify-center text-white shadow-indigo-500/20 group-hover:scale-105 transition">
+                        <CalendarDays size={18} />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-gray-800 text-sm md:text-base">Reservasi</h3>
+                        <p className="text-xs text-gray-500">Cek Booking</p>
+                      </div>
+                    </div>
+                  </Link>
                 </>
               ) : (
                 <div className="p-4 bg-primary/10 rounded-xl border border-primary/20 cursor-pointer active:scale-95 hover:shadow-md transition group flex items-center gap-3 h-full">
@@ -95,6 +110,17 @@ const Home = () => {
                    </div>
                  </div>
               )}
+              
+              <div className="p-4 bg-gray-50 rounded-xl border border-gray-200 cursor-pointer active:scale-95 hover:shadow-md transition group flex items-center gap-3 h-full">
+                <div className="bg-gray-600 w-10 h-10 rounded-lg flex items-center justify-center text-white shadow-gray-500/20 group-hover:scale-105 transition">
+                  <Settings size={18} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-800 text-sm md:text-base">Pengaturan</h3>
+                  <p className="text-xs text-gray-500">Profil & Keamanan</p>
+                </div>
+              </div>
+
             </div>
           </div>
         )}
@@ -161,9 +187,14 @@ const Home = () => {
                             Rp {suite.price.toLocaleString()}
                           </div>
                       </div>
-                      <button className="bg-secondary active:scale-95 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-primary transition">
-                          Lihat
-                      </button>
+                      
+                      {/* LINK KE HALAMAN DETAIL */}
+                      <Link 
+                        to={`/suites/${suite._id}`}
+                        className="bg-secondary active:scale-95 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-primary transition"
+                      >
+                          Lihat Detail
+                      </Link>
                    </div>
                  </div>
                </div>
@@ -184,8 +215,14 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
+        
+        {/* Rute Admin */}
         <Route path="/admin/suites" element={<ManageSuites />} />
         <Route path="/admin/suites/add" element={<AddSuite />} />
+        <Route path="/admin/bookings" element={<Bookings />} />
+
+        {/* Rute Detail Properti (Publik) */}
+        <Route path="/suites/:id" element={<SuiteDetail />} />
       </Routes>
     </div>
   );

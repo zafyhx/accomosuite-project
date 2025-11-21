@@ -3,6 +3,7 @@ const dotenv = require('dotenv');
 const cors = require('cors');
 const path = require('path');
 const connectDB = require('./config/db');
+const bookingRoutes = require('./routes/bookingRoutes');
 
 const authRoutes = require('./routes/authRoutes');
 const suiteRoutes = require('./routes/suiteRoutes');
@@ -26,6 +27,7 @@ app.use('/api/auth', authRoutes);
 
 // Gunakan Route Suite
 app.use('/api/suites', suiteRoutes);
+app.use('/api/bookings', bookingRoutes);
 
 // Folder untuk gambar yang diupload
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
