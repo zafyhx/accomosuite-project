@@ -63,9 +63,9 @@ const Navbar = () => {
         {/* 2. MENU TENGAH (Desktop) */}
         <div className="hidden md:flex gap-8">
           <NavLink to="/" label="Home" />
-          <NavLink to="/about" label="About" />
-          <NavLink to="/destination" label="Destination" />
-          <NavLink to="/packages" label="Packages" />
+          <NavLink to="/hotel" label="Hotels" />
+          <NavLink to="/blog" label="Blogs" />
+          <NavLink to="/contact" label="Contacts" />
         </div>
 
         {/* 3. MENU KANAN (User/Login) */}

@@ -1,8 +1,11 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
+const path = require('path');
 const connectDB = require('./config/db');
+
 const authRoutes = require('./routes/authRoutes');
+const suiteRoutes = require('./routes/suiteRoutes');
 
 
 // Load Config dari .env
@@ -20,6 +23,12 @@ app.use(express.json());
 
 // Gunakan Route Auth
 app.use('/api/auth', authRoutes);
+
+// Gunakan Route Suite
+app.use('/api/suites', suiteRoutes);
+
+// Folder untuk gambar yang diupload
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Route Percobaan (Test Server)
 app.get('/', (req, res) => {
