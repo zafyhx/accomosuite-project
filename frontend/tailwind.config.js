@@ -7,8 +7,13 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: '#2563EB', // Warna Biru Khas 
-        secondary: '#1E293B', // Warna Gelap Elegan
+        // Warna Cyan Segar
+        primary: '#29D9D5', 
+        'primary-dark': '#20B2AF', // Versi agak gelap untuk efek hover
+        secondary: '#2D3748', // Warna teks gelap
+      },
+      fontFamily: {
+        sans: ['Poppins', 'sans-serif'], // Gunakan font Poppins
       }
     },
   },
