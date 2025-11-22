@@ -3,3 +3,5 @@ node_modules/
 .DS_Store
 dist/
 build/
+context-generator.js
+FULL_PROJECT_CONTEXT.txt

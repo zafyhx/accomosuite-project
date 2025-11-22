@@ -4,7 +4,8 @@ const {
   getSuites, 
   getSuiteById, 
   createSuite, 
-  deleteSuite 
+  deleteSuite,
+  updateSuite
 } = require('../controllers/suiteController');
 
 // Import Middleware
@@ -15,9 +16,12 @@ const upload = require('../middleware/uploadMiddleware');
 router.get('/', getSuites);
 router.get('/:id', getSuiteById);
 
-// Rute Khusus Admin (Harus Login & Role Admin)
+//--- Rute Khusus Admin (Harus Login & Role Admin) ---//
 // upload.single('image') artinya mengharapkan input file bernama 'image'
 router.post('/', protect, admin, upload.single('image'), createSuite);
+// PUT (Edit) - Upload gambar opsional, jadi middleware upload diletakkan sebelum updateSuite
+router.put('/:id', protect, admin, upload.single('image'), updateSuite); 
+
 router.delete('/:id', protect, admin, deleteSuite);
 
 module.exports = router;

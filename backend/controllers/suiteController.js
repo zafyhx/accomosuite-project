@@ -74,4 +74,49 @@ const deleteSuite = async (req, res) => {
   }
 };
 
-module.exports = { getSuites, getSuiteById, createSuite, deleteSuite };
+// @desc    Update Suite (Khusus Admin)
+// @route   PUT /api/suites/:id
+// @access  Private/Admin
+const updateSuite = async (req, res) => {
+  try {
+    const suite = await Suite.findById(req.params.id);
+
+    if (suite) {
+      // 1. Ambil data dari body
+      const { name, location, type, price, description, facilities, capacity } = req.body;
+      
+      // 2. Cek jika ada file gambar baru yang diupload
+      if (req.file) {
+        // Jika ada, ganti gambar lama dengan yang baru
+        suite.images = [`/${req.file.path.replace(/\\/g, "/")}`];
+      }
+      
+      // 3. Update field-field
+      suite.name = name || suite.name;
+      suite.location = location || suite.location;
+      suite.type = type || suite.type;
+      suite.price = price || suite.price;
+      suite.description = description || suite.description;
+      suite.capacity = capacity || suite.capacity;
+
+      // Fasilitas: Perlu parsing karena dikirim sebagai string array
+      if (facilities) {
+          // Asumsi fasilitas dikirim sebagai array string (dari FormData di frontend)
+          suite.facilities = Array.isArray(facilities) ? facilities.map(f => f.trim()) : facilities.split(',').map(f => f.trim());
+      } else {
+          // Jika fasilitas dikosongkan
+          suite.facilities = [];
+      }
+
+      const updatedSuite = await suite.save();
+      res.json(updatedSuite);
+
+    } else {
+      res.status(404).json({ message: 'Suite tidak ditemukan' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = { getSuites, getSuiteById, createSuite, deleteSuite, updateSuite };
