@@ -1,34 +1,33 @@
-import { useContext, useState, useEffect } from "react";
-import { Routes, Route, Link, useLocation } from "react-router-dom"; // Tambah useLocation
-import axios from "axios"; 
-import { AuthContext } from "./context/AuthContext";
-import Navbar from "./components/Navbar";
+import axios from "axios";
+import { useContext, useEffect, useState } from "react";
+import { Link, Route, Routes, useLocation } from "react-router-dom"; // Tambah useLocation
 import Hero from "./components/Hero";
+import Navbar from "./components/Navbar";
+import { AuthContext } from "./context/AuthContext";
 import Login from "./pages/auth/Login";
-import Register from "./pages/auth/Register"; 
+import Register from "./pages/auth/Register";
 
 // --- KOMPONEN LAYOUT & PROTEKSI ---
-import ProtectedRoute from "./components/ProtectedRoute"; 
+import ProtectedRoute from "./components/ProtectedRoute";
 import AdminLayout from "./layouts/AdminLayout"; // <-- PASTI SUDAH BENAR
-import DashboardHome from "./pages/admin/DashboardHome"; 
-import ManageSuites from "./pages/admin/ManageSuites"; 
-import SuiteForm from "./pages/admin/SuiteForm"; 
-import AdminBookings from "./pages/admin/AdminBookings"; 
+import AdminBookings from "./pages/admin/AdminBookings";
+import DashboardHome from "./pages/admin/DashboardHome";
+import ManageSuites from "./pages/admin/ManageSuites";
+import SuiteForm from "./pages/admin/SuiteForm";
 
 //--- HALAMAN USER (DETAIL & SUCCESS) ---//
-import SuiteDetail from "./pages/SuiteDetail";
-import BookingSuccess from "./pages/BookingSuccess"; 
+import BookingSuccess from "./pages/BookingSuccess";
 import MyBookings from "./pages/MyBookings"; // <-- IMPORT BARU
+import SuiteDetail from "./pages/SuiteDetail";
 
-import { 
-  LayoutDashboard, 
-  CalendarDays, 
-  Settings, 
-  ShieldCheck, 
-  MapPin, 
-  Star, 
-  ArrowRight,
-  Loader2 
+import {
+  CalendarDays,
+  LayoutDashboard,
+  Loader2,
+  MapPin,
+  Settings,
+  ShieldCheck,
+  Star
 } from "lucide-react";
 
 // --- 1. KOMPONEN HOME (DASHBOARD) ---
@@ -88,8 +87,8 @@ const Home = () => {
                         <LayoutDashboard size={18} />
                       </div>
                       <div>
-                        <h3 className="font-bold text-gray-800 text-sm md:text-base">Kelola Properti</h3>
-                        <p className="text-xs text-gray-500">Dashboard & CRUD</p>
+                        <h3 className="font-bold text-gray-800 text-sm md:text-base">Dashboard</h3>
+                        <p className="text-xs text-gray-500">Panel Admin</p>
                       </div>
                     </div>
                   </Link>

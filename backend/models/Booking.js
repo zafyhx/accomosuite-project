@@ -29,7 +29,7 @@ const bookingSchema = new mongoose.Schema({
   // Status Pesanan
   status: {
     type: String,
-    enum: ['pending', 'confirmed', 'cancelled', 'completed'],
+    enum: ['pending', 'confirmed', 'cancellation_requested', 'cancelled', 'completed'],
     default: 'pending' // Default: Menunggu konfirmasi admin
   }
 }, { timestamps: true });
