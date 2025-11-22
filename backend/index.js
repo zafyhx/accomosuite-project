@@ -4,10 +4,10 @@ const cors = require('cors');
 const path = require('path');
 const connectDB = require('./config/db');
 const bookingRoutes = require('./routes/bookingRoutes');
-
+const blogRoutes = require('./routes/blogRoutes');
 const authRoutes = require('./routes/authRoutes');
 const suiteRoutes = require('./routes/suiteRoutes');
-
+const dirname = path.resolve();
 
 // Load Config dari .env
 dotenv.config();
@@ -28,6 +28,12 @@ app.use('/api/auth', authRoutes);
 // Gunakan Route Suite
 app.use('/api/suites', suiteRoutes);
 app.use('/api/bookings', bookingRoutes);
+
+// Gunakan Route Blog
+app.use('/api/blogs', blogRoutes);
+
+// Agar url seperti http://localhost:5000/uploads/gambar.jpg bisa diakses
+app.use('/uploads', express.static(path.join(dirname, '/uploads')));
 
 // Folder untuk gambar yang diupload
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
