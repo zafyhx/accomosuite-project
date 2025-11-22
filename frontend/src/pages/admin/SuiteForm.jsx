@@ -1,48 +1,51 @@
 import { useState, useEffect, useContext } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
-import { AuthContext } from "../../context/AuthContext";
+// Pastikan path import ini benar sesuai struktur folder Anda
+import { AuthContext } from "../../context/AuthContext.jsx"; 
 import { Save, ArrowLeft, Upload, X, Loader2 } from "lucide-react";
 
-// Halaman AddSuite dan EditSuite digabung menjadi satu komponen SuiteForm
 const SuiteForm = () => {
-  const { id } = useParams(); // Ambil ID dari URL (hanya ada di mode Edit)
+  const { id } = useParams(); 
   const navigate = useNavigate();
   const { user } = useContext(AuthContext); 
   const isEditMode = !!id;
 
   const [formData, setFormData] = useState({
     name: "",
-    type: "Hotel", // Default
+    type: "Hotel", 
     price: "",
     description: "",
     facilities: "", 
     location: "",
-    capacity: 2, // Default
+    capacity: 2, 
   });
   const [imageFile, setImageFile] = useState(null);
   const [preview, setPreview] = useState(null);
-  const [loading, setLoading] = useState(isEditMode); // Loading true hanya jika Edit Mode
+  const [loading, setLoading] = useState(isEditMode); 
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState(null);
 
-  // LOGIC FIX BUG EDIT: Mengambil data lama jika Edit Mode
+  // LOGIC FETCH DATA UNTUK EDIT
   useEffect(() => {
     if (isEditMode) {
       const fetchSuite = async () => {
         try {
           const { data } = await axios.get(`/api/suites/${id}`);
+          
           setFormData({
             name: data.name || "",
             type: data.type || "Hotel",
             price: data.price || "",
             description: data.description || "",
-            // Mengubah array fasilitas menjadi string yang dipisah koma (untuk input)
-            facilities: Array.isArray(data.facilities) ? data.facilities.join(", ") : data.facilities || "", 
+            // Ubah array fasilitas dari DB menjadi string untuk ditampilkan di input
+            facilities: Array.isArray(data.facilities) 
+              ? data.facilities.join(", ") 
+              : (data.facilities || ""), 
             location: data.location || "",
             capacity: data.capacity || 2,
           });
-          // Set preview gambar lama (asumsi hanya ada 1 gambar utama)
+          
           if (data.images && data.images.length > 0) {
             setPreview(`http://localhost:5000${data.images[0]}`);
           }
@@ -74,7 +77,7 @@ const SuiteForm = () => {
     setIsSaving(true);
     setError(null);
 
-    // Validasi sederhana
+    // Validasi gambar wajib jika tambah baru
     if (!isEditMode && !imageFile) {
         setError("Harap unggah gambar utama properti.");
         setIsSaving(false);
@@ -82,53 +85,58 @@ const SuiteForm = () => {
     }
 
     const data = new FormData();
-    // Memecah string fasilitas menjadi array string
-    const facilitiesArray = formData.facilities.split(',').map(f => f.trim()).filter(f => f.length > 0);
     
-    // Menambahkan semua data ke FormData
+    // 1. Masukkan data text biasa
     Object.keys(formData).forEach((key) => {
-      // Kecuali facilities, kita kirim array
       if (key !== 'facilities') {
         data.append(key, formData[key]);
       }
     });
-    // Menambahkan fasilitas sebagai array (atau string terpisah koma, backend yang tentukan)
-    facilitiesArray.forEach(f => data.append('facilities', f));
 
+    // 2. FIX: PERBAIKAN LOGIKA FASILITAS
+    // Backend mengharapkan String agar bisa di-split.
+    // Jadi kita kirim string mentah saja, jangan dipecah jadi array di sini.
+    const facilitiesString = String(formData.facilities || "").trim();
+    data.append('facilities', facilitiesString);
+
+    // 3. Masukkan File Gambar
     if (imageFile) {
       data.append("image", imageFile);
     }
     
-    // Pastikan user.token tersedia
-    if (!user || !user.token) {
+    // Ambil token
+    const token = localStorage.getItem("userInfo") 
+        ? JSON.parse(localStorage.getItem("userInfo")).token 
+        : (user?.token || null);
+
+    if (!token) {
         setError("Sesi admin berakhir. Silakan login ulang.");
         setIsSaving(false);
         return;
     }
 
-
     try {
       const config = { 
           headers: { 
-              Authorization: `Bearer ${user.token}`,
-              'Content-Type': 'multipart/form-data', // Penting untuk upload file
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'multipart/form-data',
           } 
       };
 
       if (isEditMode) {
-        // Mode EDIT (PUT)
         await axios.put(`/api/suites/${id}`, data, config);
         alert(`Suite '${formData.name}' berhasil diupdate!`);
       } else {
-        // Mode TAMBAH (POST)
         await axios.post("/api/suites", data, config);
         alert(`Suite '${formData.name}' berhasil ditambahkan!`);
       }
       
-      navigate("/admin/suites"); // Kembali ke daftar suite setelah sukses
+      navigate("/admin/suites");
     } catch (err) {
       console.error("Gagal menyimpan data:", err.response || err);
-      setError("Gagal menyimpan data. Pastikan semua field terisi dan file gambar sesuai. Pesan Error: " + (err.response?.data?.message || err.message));
+      // Menampilkan pesan error detail dari backend
+      const serverMessage = err.response?.data?.message || err.response?.data?.error || err.message;
+      setError(`Gagal menyimpan data. Server merespon: ${serverMessage}`);
     } finally {
       setIsSaving(false);
     }
@@ -148,7 +156,7 @@ const SuiteForm = () => {
       </div>
       
       {error && (
-        <div className="bg-red-50 border border-red-300 text-red-700 p-4 rounded-xl mb-6 text-sm">
+        <div className="bg-red-50 border border-red-300 text-red-700 p-4 rounded-xl mb-6 text-sm font-medium">
             {error}
         </div>
       )}
@@ -218,8 +226,8 @@ const SuiteForm = () => {
         </div>
 
         <div>
-          <label className="block text-sm font-bold text-gray-700 mb-2">Fasilitas (Pisahkan dengan koma: WiFi, AC, Pool...) *</label>
-          <input type="text" name="facilities" value={formData.facilities} onChange={handleChange} placeholder="WiFi, AC, Pool, Breakfast" required
+          <label className="block text-sm font-bold text-gray-700 mb-2">Fasilitas (Pisahkan dengan koma) *</label>
+          <input type="text" name="facilities" value={formData.facilities} onChange={handleChange} placeholder="Contoh: WiFi, AC, Pool, Breakfast" required
             className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary outline-none transition" />
         </div>
 

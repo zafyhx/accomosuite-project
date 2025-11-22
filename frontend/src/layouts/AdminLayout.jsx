@@ -7,30 +7,38 @@ const AdminLayout = () => {
   const navigate = useNavigate();
 
   // Asumsi data user disimpan di localStorage atau Context
-  // Kita coba ambil dari localStorage secara langsung
-  const userString = localStorage.getItem("user");
+  const userString = localStorage.getItem("userInfo") || localStorage.getItem("user");
   const user = userString ? JSON.parse(userString) : null; 
 
   const handleLogout = () => {
     localStorage.removeItem("user");
+    localStorage.removeItem("userInfo");
     navigate("/login");
   };
 
+  // PERBAIKAN PATH DISINI AGAR SESUAI APP.JSX
   const menuItems = [
     { path: "/admin", icon: <LayoutDashboard size={20} />, label: "Dashboard Utama" },
     { path: "/admin/suites", icon: <BedDouble size={20} />, label: "Manajemen Suite" },
     { path: "/admin/bookings", icon: <CalendarCheck size={20} />, label: "Approval Reservasi" },
-    { path: "/admin/blog", icon: <BookOpen size={20} />, label: "Manajemen Blog" },
+    { path: "/admin/blogs", icon: <BookOpen size={20} />, label: "Manajemen Blog" }, // Diubah jadi 'blogs'
     { path: "/admin/logs", icon: <ShieldAlert size={20} />, label: "Security Logs" },
-    { path: "/profile", icon: <User size={20} />, label: "Profil Saya (User)" },
   ];
 
-  const getNavLinkClass = (path) =>
-    `flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium ${
-      location.pathname === path 
+  const getNavLinkClass = (path) => {
+    // Logika active state:
+    // 1. Jika path exact match (misal /admin)
+    // 2. ATAU jika path bukan root (/admin) tapi pathname dimulai dengan path itu (misal /admin/suites/new aktifkan menu Suites)
+    const isActive = path === "/admin" 
+      ? location.pathname === "/admin"
+      : location.pathname.startsWith(path);
+
+    return `flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium ${
+      isActive
         ? "bg-primary text-white shadow-md shadow-primary/40" 
         : "text-gray-600 hover:bg-gray-50 hover:text-secondary"
     }`;
+  };
 
   return (
     <div className="flex min-h-screen bg-gray-50 font-sans">
@@ -61,7 +69,7 @@ const AdminLayout = () => {
           {user ? (
             <div className="text-sm font-semibold text-gray-700 mb-4">{user.name} ({user.role})</div>
           ) : (
-            <div className="text-sm font-semibold text-gray-400 mb-4">Memuat data user...</div>
+            <div className="text-sm font-semibold text-gray-400 mb-4">Admin User</div>
           )}
           
           <button 

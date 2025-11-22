@@ -1,6 +1,6 @@
 import axios from "axios";
 import { useContext, useEffect, useState } from "react";
-import { Link, Route, Routes, useLocation } from "react-router-dom"; // Tambah useLocation
+import { Link, Route, Routes, useLocation } from "react-router-dom";
 import Hero from "./components/Hero";
 import Navbar from "./components/Navbar";
 import { AuthContext } from "./context/AuthContext";
@@ -9,16 +9,21 @@ import Register from "./pages/auth/Register";
 
 // --- KOMPONEN LAYOUT & PROTEKSI ---
 import ProtectedRoute from "./components/ProtectedRoute";
-import AdminLayout from "./layouts/AdminLayout"; // <-- PASTI SUDAH BENAR
+import AdminLayout from "./layouts/AdminLayout";
 import AdminBookings from "./pages/admin/AdminBookings";
 import DashboardHome from "./pages/admin/DashboardHome";
 import ManageSuites from "./pages/admin/ManageSuites";
 import SuiteForm from "./pages/admin/SuiteForm";
 
-//--- HALAMAN USER (DETAIL & SUCCESS) ---//
+//--- HALAMAN USER ---//
 import BookingSuccess from "./pages/BookingSuccess";
-import MyBookings from "./pages/MyBookings"; // <-- IMPORT BARU
+import MyBookings from "./pages/MyBookings";
 import SuiteDetail from "./pages/SuiteDetail";
+
+//--- HALAMAN BLOG ---//
+import Blog from './pages/Blog';
+import BlogDetail from './pages/BlogDetail';
+import ManageBlogs from './pages/admin/ManageBlogs';
 
 import {
   CalendarDays,
@@ -36,7 +41,6 @@ const Home = () => {
   const [suites, setSuites] = useState([]); 
   const [loading, setLoading] = useState(true);
 
-  // AMBIL DATA DARI BACKEND SAAT HALAMAN DIBUKA
   useEffect(() => {
     const fetchSuites = async () => {
       try {
@@ -52,7 +56,6 @@ const Home = () => {
     fetchSuites();
   }, []);
   
-  // LOGIKA KOMPONEN HOME (Update Link 'Booking Saya' ke rute baru)
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
       <Hero />
@@ -80,7 +83,6 @@ const Home = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
               {user.role === 'admin' ? (
                 <>
-                  {/* Perbarui link Admin ke rute Dashboard */}
                   <Link to="/admin"> 
                     <div className="p-4 bg-primary/10 rounded-xl border border-primary/20 cursor-pointer active:scale-95 hover:shadow-md transition group flex items-center gap-3 h-full">
                       <div className="bg-primary w-10 h-10 rounded-lg flex items-center justify-center text-white shadow-primary/30 group-hover:scale-105 transition">
@@ -106,17 +108,16 @@ const Home = () => {
                   </Link>
                 </>
               ) : (
-                // Menu untuk User Biasa (UPDATE LINK KE RUTE BARU)
                 <Link to="/my-bookings"> 
                     <div className="p-4 bg-primary/10 rounded-xl border border-primary/20 cursor-pointer active:scale-95 hover:shadow-md transition group flex items-center gap-3 h-full">
-                       <div className="bg-primary w-10 h-10 rounded-lg flex items-center justify-center text-white shadow-primary/30 group-hover:scale-105 transition">
-                        <CalendarDays size={18} />
-                       </div>
-                       <div>
-                        <h3 className="font-bold text-gray-800 text-sm md:text-base">Booking Saya</h3>
-                        <p className="text-xs text-gray-500">Riwayat Pesanan</p>
-                       </div>
-                    </div>
+                        <div className="bg-primary w-10 h-10 rounded-lg flex items-center justify-center text-white shadow-primary/30 group-hover:scale-105 transition">
+                         <CalendarDays size={18} />
+                        </div>
+                        <div>
+                         <h3 className="font-bold text-gray-800 text-sm md:text-base">Booking Saya</h3>
+                         <p className="text-xs text-gray-500">Riwayat Pesanan</p>
+                        </div>
+                     </div>
                 </Link>
               )}
               
@@ -162,12 +163,9 @@ const Home = () => {
                       alt={suite.name}
                       className="w-full h-full object-cover group-hover:scale-110 transition duration-700"
                     />
-                    
-                    {/* Badge Tipe Properti */}
                     <div className="absolute top-3 left-3 bg-black/50 backdrop-blur-md text-white text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wider">
                       {suite.type}
                     </div>
-
                     <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm text-secondary text-[10px] font-bold px-2 py-1 rounded-full shadow-sm flex items-center gap-1">
                       <Star size={10} className="text-orange-400 fill-orange-400" /> 4.8
                     </div>
@@ -177,9 +175,8 @@ const Home = () => {
                  <div className="p-4 flex flex-col flex-grow justify-between">
                     <div>
                       <h3 className="text-base md:text-lg font-bold text-secondary group-hover:text-primary transition line-clamp-1">
-                         {suite.name}
+                          {suite.name}
                       </h3>
-                      {/* Lokasi Asli */}
                       <div className="flex items-center gap-1 text-gray-400 text-xs mt-1">
                           <MapPin size={12} />
                           <span>{suite.location || "Lokasi belum diatur"}</span>
@@ -194,7 +191,6 @@ const Home = () => {
                           </div>
                       </div>
                       
-                      {/* LINK KE HALAMAN DETAIL */}
                       <Link 
                         to={`/suites/${suite._id}`}
                         className="bg-secondary active:scale-95 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-primary transition"
@@ -230,25 +226,35 @@ function App() {
         <Route path="/register" element={<Register />} /> 
         
         {/* Rute User yang Dilindungi */}
-        <Route path="/my-bookings" element={<ProtectedRoute><MyBookings /></ProtectedRoute>} /> {/* <-- RUTE BARU */}
-
+        <Route path="/my-bookings" element={<ProtectedRoute><MyBookings /></ProtectedRoute>} />
+        
         {/* Rute Detail Properti (Publik) */}
         <Route path="/suites/:id" element={<SuiteDetail />} />
-        
-        {/* Rute Sukses Booking */}
         <Route path="/booking-success" element={<BookingSuccess />} />
+        
+        {/* Route Blog Public */}
+        <Route path="/blog" element={<Blog />} />
+        <Route path="/blog/:id" element={<BlogDetail />} />
 
         {/* ============================================== */}
-        {/* Rute ADMIN PANEL (Menggunakan AdminLayout) */}
+        {/* RUTE ADMIN PANEL (Disatukan disini)            */}
         {/* ============================================== */}
         <Route path="/admin" element={<ProtectedRoute adminOnly={true}><AdminLayout /></ProtectedRoute>}>
+          {/* /admin (index) -> Dashboard Home */}
           <Route index element={<DashboardHome />} />
           
+          {/* /admin/suites */}
           <Route path="suites" element={<ManageSuites />} />
           <Route path="suites/new" element={<SuiteForm />} />
           <Route path="suites/edit/:id" element={<SuiteForm />} />
           
+          {/* /admin/bookings */}
           <Route path="bookings" element={<AdminBookings />} />
+          
+          {/* /admin/blogs (PERBAIKAN DISINI) */}
+          <Route path="blogs" element={<ManageBlogs />} />
+          
+          {/* /admin/logs */}
           <Route path="logs" element={<div>Halaman Log Aktivitas</div>} /> 
         </Route>
         
