@@ -7,7 +7,8 @@ const {
   getMyBookings, 
   cancelBooking, 
   getAllBookings, 
-  adminUpdateBookingStatus 
+  adminUpdateBookingStatus,
+  getDashboardStats
 } = require('../controllers/bookingController'); 
 
 // Prefix: /api/bookings
@@ -19,7 +20,10 @@ router.put('/:id/cancel', protect, cancelBooking);
 
 // Rute Admin
 router.get('/', protect, admin, getAllBookings); 
+// Route untuk dashboard
+router.get('/admin/stats', protect, admin, getDashboardStats);
 // Rute Admin untuk Mengubah Status (Approval)
-router.put('/:id/status', protect, admin, adminUpdateBookingStatus); // <-- RUTE KRUSIAL
+router.put('/:id/status', protect, admin, adminUpdateBookingStatus);
+
 
 module.exports = router;

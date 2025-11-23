@@ -126,11 +126,132 @@ const adminUpdateBookingStatus = async (req, res) => {
     }
 };
 
+// @desc    Get admin dashboard statistics
+// @route   GET /api/bookings/admin/stats
+// @access  Private/Admin
+const getDashboardStats = async (req, res) => {
+  try {
+    // --- 1. STATISTIK KARTU ---
+    
+    const incomeResult = await Booking.aggregate([
+      { $match: { status: { $in: ['confirmed', 'completed', 'checked_in'] } } },
+      { $group: { _id: null, total: { $sum: "$totalPrice" } } }
+    ]);
+    const totalIncome = incomeResult.length > 0 ? incomeResult[0].total : 0;
+
+    const pendingCancel = await Booking.countDocuments({ 
+      status: 'cancellation_requested' 
+    });
+
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+    const todayBookings = await Booking.countDocuments({
+      createdAt: { $gte: startOfDay }
+    });
+
+    const totalSuites = await Suite.countDocuments();
+
+
+    // --- 2. TABEL DATA ---
+    const recentTransactions = await Booking.find()
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .populate('suite', 'name')
+      .populate('user', 'name email');
+
+    const recentCancellations = await Booking.find({
+        status: { $in: ['cancelled', 'cancellation_requested'] }
+      })
+      .sort({ updatedAt: -1 })
+      .limit(5)
+      .populate('suite', 'name')
+      .populate('user', 'name email');
+
+
+    // --- 3. DATA GRAFIK (UPDATED) ---
+    const sixMonthsAgo = new Date(new Date().setMonth(new Date().getMonth() - 6));
+
+    // A. Grafik Pendapatan Bulanan
+    const monthlyRevenue = await Booking.aggregate([
+      { 
+        $match: { 
+          status: { $in: ['confirmed', 'completed'] },
+          createdAt: { $gte: sixMonthsAgo }
+        } 
+      },
+      {
+        $group: {
+          _id: { $month: "$createdAt" },
+          total: { $sum: "$totalPrice" }
+        }
+      },
+      { $sort: { "_id": 1 } }
+    ]);
+
+    // B. Grafik Reservasi Bulanan (Jumlah Booking dibuat)
+    const monthlyReservations = await Booking.aggregate([
+      { 
+        $match: { createdAt: { $gte: sixMonthsAgo } } 
+      },
+      {
+        $group: {
+          _id: { $month: "$createdAt" },
+          count: { $sum: 1 }
+        }
+      },
+      { $sort: { "_id": 1 } }
+    ]);
+
+    // C. Grafik Pembatalan Bulanan (Jumlah Booking dibatalkan)
+    const monthlyCancellations = await Booking.aggregate([
+      { 
+        $match: { 
+          status: { $in: ['cancelled', 'cancellation_requested'] },
+          updatedAt: { $gte: sixMonthsAgo } // Gunakan updatedAt saat status berubah
+        } 
+      },
+      {
+        $group: {
+          _id: { $month: "$updatedAt" },
+          count: { $sum: 1 }
+        }
+      },
+      { $sort: { "_id": 1 } }
+    ]);
+
+    // D. Pie Chart
+    const suiteDistribution = await Suite.aggregate([
+      { $group: { _id: "$type", count: { $sum: 1 } } }
+    ]);
+
+    res.json({
+      cards: {
+        totalIncome,
+        pendingCancel,
+        todayBookings, 
+        totalSuites
+      },
+      recentTransactions,
+      recentCancellations,
+      charts: {
+        monthlyRevenue,
+        monthlyReservations, // Data Baru
+        monthlyCancellations, // Data Baru
+        suiteDistribution
+      }
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Gagal mengambil data statistik" });
+  }
+};
 
 module.exports = { 
     createBooking, 
     getMyBookings, 
     getAllBookings, 
     cancelBooking,
-    adminUpdateBookingStatus
+    adminUpdateBookingStatus,
+    getDashboardStats
 };
