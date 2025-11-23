@@ -29,6 +29,10 @@ import Blog from './pages/Blog';
 import BlogDetail from './pages/BlogDetail';
 import ManageBlogs from './pages/admin/ManageBlogs';
 
+//--- HALAMAN PLACEHOLDER ---//
+import Contact from './pages/Contact'; 
+import Hotel from './pages/Hotel';     
+
 import {
   CalendarDays,
   LayoutDashboard,
@@ -241,6 +245,10 @@ function App() {
         {/* Route Blog Public */}
         <Route path="/blog" element={<Blog />} />
         <Route path="/blog/:id" element={<BlogDetail />} />
+
+        {/* Rute PlaceHolder */}
+        <Route path="/hotel" element={<Hotel />} />  
+        <Route path="/contact" element={<Contact />} />  
 
         {/* ============================================== */}
         {/*               RUTE ADMIN PANEL                 */}
