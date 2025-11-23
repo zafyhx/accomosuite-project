@@ -1,371 +1,379 @@
-import { useState, useEffect, useContext } from "react";
-import axios from "axios";
-// Pastikan path import benar dan tanpa ekstensi .jsx jika bermasalah di build system tertentu
-import { AuthContext } from "../../context/AuthContext";
-import { 
-  Plus, 
-  Trash2, 
-  Edit, 
-  Image as ImageIcon, 
-  Loader2, 
-  ArrowLeft, 
-  Save, 
-  Upload, 
-  X,
-  BookOpen,
-  Calendar,
-  User
-} from "lucide-react";
+import axios from 'axios';
+import { AlertCircle, Calendar, FileText, Image, Loader2, Plus, Trash2, X, Edit } from 'lucide-react'; // Tambah import Edit
+import { useEffect, useState, useContext } from 'react';
+import { AuthContext } from '../../context/AuthContext';
 
 const ManageBlogs = () => {
-  // --- STATE UTAMA ---
-  const [view, setView] = useState('list'); // 'list' atau 'form'
-  const [blogs, setBlogs] = useState([]);
-  const [loading, setLoading] = useState(true);
-  
-  // --- STATE FORM ---
   const { user } = useContext(AuthContext);
+  const [blogs, setBlogs] = useState([]);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  
+  // State untuk Edit Mode
   const [isEditMode, setIsEditMode] = useState(false);
   const [editId, setEditId] = useState(null);
-  const [isSaving, setIsSaving] = useState(false);
-  const [error, setError] = useState(null);
-  
-  // Data Form Default
-  const initialFormState = { title: "", category: "General", content: "" };
-  const [formData, setFormData] = useState(initialFormState);
-  const [imageFile, setImageFile] = useState(null);
-  const [preview, setPreview] = useState(null);
 
-  // --- 1. LOGIC FETCH DATA (READ) ---
+  const [formData, setFormData] = useState({
+    title: '', category: 'General', content: '', image: null
+  });
+  const [preview, setPreview] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [fetchLoading, setFetchLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // --- Helper Functions ---
+
+  // 1. Get Token Helper
+  const getAuthToken = () => {
+    // 1. Prioritas dari Context
+    if (user && user.token) return user.token;
+    
+    // 2. Backup dari localStorage
+    try {
+      const userInfo = localStorage.getItem('userInfo');
+      if (!userInfo) return null;
+      const parsed = JSON.parse(userInfo);
+      return parsed.token || parsed.accessToken || parsed.authToken;
+    } catch (error) {
+      console.error('Error parsing userInfo:', error);
+      return null;
+    }
+  };
+
+  // 2. Get Image URL Helper (Fix Bug Preview Gambar)
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) return null;
+    // Jika path sudah lengkap (http...), gunakan langsung. Jika relatif, tambahkan host backend.
+    // Sesuaikan 'http://localhost:5000' dengan URL backend yang sebenarnya
+    return imagePath.startsWith('http') ? imagePath : `http://localhost:5000${imagePath}`;
+  };
+
+  // --- Main Logic ---
+
+  // Fetch Data
   const fetchBlogs = async () => {
     try {
-      setLoading(true);
-      const { data } = await axios.get("/api/blogs");
+      setFetchLoading(true);
+      setError(null);
+      const { data } = await axios.get('/api/blogs');
       setBlogs(data);
     } catch (error) {
-      console.error("Gagal ambil blog:", error);
+      console.error('Error fetching blogs:', error);
+      setError('Gagal memuat artikel');
     } finally {
-      setLoading(false);
+      setFetchLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchBlogs();
-  }, []);
+  useEffect(() => { fetchBlogs(); }, []);
 
-  // --- 2. LOGIC HAPUS (DELETE) ---
-  const handleDelete = async (id) => {
-    if (window.confirm("Yakin ingin menghapus artikel ini?")) {
-      try {
-        // Ambil token aman
-        const token = user?.token || (localStorage.getItem("userInfo") 
-          ? JSON.parse(localStorage.getItem("userInfo")).token 
-          : null);
-
-        if (!token) {
-           alert("Sesi kadaluarsa. Silakan login ulang.");
-           return;
-        }
-
-        const config = { headers: { Authorization: `Bearer ${token}` } };
-        await axios.delete(`/api/blogs/${id}`, config);
-        fetchBlogs();
-      } catch (error) {
-        alert("Gagal menghapus: " + (error.response?.data?.message || "Server Error"));
-      }
-    }
+  // Handle Input
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // --- 3. LOGIC FORM HANDLERS ---
-  const handleAddNew = () => {
-    setFormData(initialFormState);
-    setPreview(null);
-    setImageFile(null);
-    setIsEditMode(false);
-    setEditId(null);
-    setError(null);
-    setView('form');
-  };
-
-  const handleEdit = (blog) => {
-    setFormData({
-      title: blog.title,
-      category: blog.category,
-      content: blog.content
-    });
-    // Gunakan URL gambar dari backend jika ada
-    setPreview(blog.imageUrl ? blog.imageUrl : null); 
-    setImageFile(null);
-    setIsEditMode(true);
-    setEditId(blog.id || blog._id); 
-    setError(null);
-    setView('form');
-  };
-
+  // Handle Image Upload
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setImageFile(file);
+      setFormData({ ...formData, image: file });
+      // Preview lokal untuk file baru yang akan diupload
       setPreview(URL.createObjectURL(file));
     }
   };
 
+  // Handle Edit Click (NEW)
+  const handleEditClick = (blog) => {
+    setIsEditMode(true);
+    setEditId(blog._id || blog.id); // Pastikan ID sesuai field DB (biasanya _id di Mongo)
+    setFormData({
+      title: blog.title,
+      category: blog.category,
+      content: blog.content,
+      image: null // Reset file input karena kita pakai gambar lama by default
+    });
+    // Set preview dari gambar yang sudah ada di server
+    setPreview(getImageUrl(blog.imageUrl));
+    setIsFormOpen(true);
+    setError(null);
+  };
+
+  // Handle Cancel / Close Form
+  const handleCloseForm = () => {
+    setIsFormOpen(false);
+    setIsEditMode(false);
+    setEditId(null);
+    setFormData({ title: '', category: 'General', content: '', image: null });
+    setPreview(null);
+    setError(null);
+  };
+
+  // Handle Submit (Create & Update)
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsSaving(true);
+    setLoading(true);
     setError(null);
 
-    // Ambil token secara aman (Prioritas: Context -> LocalStorage)
-    const token = user?.token || (localStorage.getItem("userInfo") 
-        ? JSON.parse(localStorage.getItem("userInfo")).token 
-        : null);
-
+    const token = getAuthToken();
+    console.log('Token ditemukan:', token); // CEK INI
+    console.log('User dari context:', user); // CEK INI
+    console.log('LocalStorage userInfo:', localStorage.getItem('userInfo')); // CEK INI
     if (!token) {
-        setError("Token tidak valid atau sesi berakhir. Silakan Logout dan Login ulang.");
-        setIsSaving(false);
-        return;
+      setError('Anda harus login terlebih dahulu.');
+      setLoading(false);
+      return;
     }
 
     const data = new FormData();
     data.append('title', formData.title);
     data.append('category', formData.category);
     data.append('content', formData.content);
-    if (imageFile) data.append('image', imageFile);
+    if (formData.image) {
+      data.append('image', formData.image);
+    }
 
     try {
       const config = {
         headers: { 
           'Content-Type': 'multipart/form-data',
-          Authorization: `Bearer ${token}` // Token yang sudah dipastikan ada
+          'Authorization': `Bearer ${token}`
         }
       };
 
       if (isEditMode) {
+        // UPDATE Logic
         await axios.put(`/api/blogs/${editId}`, data, config);
+        alert('✅ Artikel berhasil diperbarui!');
       } else {
+        // CREATE Logic
         await axios.post('/api/blogs', data, config);
+        alert('✅ Artikel berhasil diterbitkan!');
       }
+      
+      handleCloseForm(); // Reset form & state
+      fetchBlogs();      // Refresh data table
 
-      fetchBlogs(); // Refresh list
-      setView('list'); // Kembali ke tabel
-    } catch (err) {
-      console.error(err);
-      setError(err.response?.data?.message || "Gagal menyimpan artikel. Cek koneksi atau login ulang.");
+    } catch (error) {
+      console.error('Submit error:', error.response || error);
+      const msg = error.response?.data?.message || 'Gagal menyimpan artikel.';
+      if (error.response?.status === 401) {
+        setError('Sesi berakhir. Silakan login kembali.');
+      } else {
+        setError(msg);
+      }
     } finally {
-      setIsSaving(false);
+      setLoading(false);
     }
   };
 
-  // ==========================================
-  // TAMPILAN 1: FORM (Mirip SuiteForm)
-  // ==========================================
-  if (view === 'form') {
-    return (
-      <div className="max-w-3xl mx-auto bg-white p-8 rounded-2xl shadow-lg border border-gray-100 animate-fade-in">
-        {/* Header Form */}
-        <div className="flex items-center gap-4 mb-6">
-          <button 
-            onClick={() => setView('list')} 
-            className="p-2 hover:bg-gray-100 rounded-full transition active:scale-95"
-          >
-            <ArrowLeft size={20} className="text-gray-500" />
-          </button>
-          <h2 className="text-2xl font-bold text-secondary">
-            {isEditMode ? "Edit Artikel" : "Tulis Artikel Baru"}
-          </h2>
-        </div>
+  // Handle Delete
+  const handleDelete = async (id) => {
+    if (!window.confirm('Yakin ingin menghapus artikel ini?')) return;
 
-        {error && (
-          <div className="bg-red-50 border border-red-300 text-red-700 p-4 rounded-xl mb-6 text-sm font-medium">
-            {error}
-          </div>
-        )}
+    const token = getAuthToken();
+    if (!token) {
+      alert('Anda harus login untuk menghapus artikel');
+      return;
+    }
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Upload Gambar (Style Dashed) */}
-          <div className="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center relative hover:bg-gray-50 transition bg-gray-50/50">
-            {preview ? (
-              <div className="relative h-64 w-full group">
-                <img src={preview} alt="Preview" className="w-full h-full object-cover rounded-lg shadow-sm" />
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center rounded-lg">
-                   <button 
-                      type="button"
-                      onClick={() => { setPreview(null); setImageFile(null); }}
-                      className="bg-red-500 text-white px-4 py-2 rounded-full font-bold shadow-lg hover:bg-red-600 transition flex items-center gap-2"
-                   >
-                      <X size={16}/> Hapus Gambar
-                   </button>
-                </div>
-              </div>
-            ) : (
-              <label className="cursor-pointer flex flex-col items-center gap-3 py-8">
-                <div className="bg-primary/10 p-4 rounded-full text-primary mb-2">
-                  <Upload size={32} />
-                </div>
-                <span className="text-gray-700 font-bold text-lg">Upload Cover Artikel</span>
-                <span className="text-gray-400 text-sm">Format: JPG, PNG, WEBP (Max 5MB)</span>
-                <input type="file" onChange={handleImageChange} className="hidden" accept="image/*" />
-              </label>
-            )}
-          </div>
+    try {
+      await axios.delete(`/api/blogs/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      fetchBlogs();
+      alert('✅ Artikel berhasil dihapus');
+    } catch (error) {
+      console.error('Delete error:', error);
+      alert('Gagal menghapus artikel');
+    }
+  };
 
-          {/* Inputs */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="md:col-span-2">
-              <label className="block text-sm font-bold text-gray-700 mb-2">Judul Artikel *</label>
-              <input 
-                type="text" 
-                value={formData.title} 
-                onChange={(e) => setFormData({...formData, title: e.target.value})} 
-                required
-                placeholder="Contoh: 5 Tips Liburan Hemat..."
-                className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary outline-none transition" 
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">Kategori *</label>
-              <select 
-                value={formData.category} 
-                onChange={(e) => setFormData({...formData, category: e.target.value})} 
-                className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary outline-none bg-white transition"
-              >
-                <option>General</option>
-                <option>Travel Tips</option>
-                <option>Destinations</option>
-                <option>Hotel Reviews</option>
-                <option>News</option>
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">Konten Artikel *</label>
-            <textarea 
-              rows="10" 
-              value={formData.content} 
-              onChange={(e) => setFormData({...formData, content: e.target.value})} 
-              required
-              placeholder="Mulai menulis cerita anda di sini..."
-              className="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary outline-none transition leading-relaxed" 
-            />
-          </div>
-
-          {/* Submit Button */}
-          <button 
-            type="submit" 
-            disabled={isSaving}
-            className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-4 rounded-xl transition flex justify-center items-center gap-2 shadow-lg shadow-primary/30 active:scale-95 disabled:opacity-50"
-          >
-            {isSaving ? <><Loader2 size={20} className="animate-spin"/> Menyimpan...</> : <><Save size={20}/> {isEditMode ? 'Update Artikel' : 'Terbitkan Artikel'}</>}
-          </button>
-        </form>
-      </div>
-    );
-  }
-
-  // ==========================================
-  // TAMPILAN 2: LIST / TABLE (Mirip ManageSuites)
-  // ==========================================
   return (
     <div className="space-y-6">
+      
+      {/* Error Alert */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3 animate-fade-in-down">
+          <AlertCircle className="text-red-500 mt-0.5" size={20} />
+          <div className="flex-1">
+            <p className="text-red-800 font-medium">{error}</p>
+            <button onClick={() => setError(null)} className="text-red-600 text-sm underline mt-1 hover:text-red-700">
+              Tutup
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Header Section */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-secondary">Manajemen Blog</h1>
-          <p className="text-gray-500 text-sm">Buat dan kelola artikel berita atau tips untuk user.</p>
+          <h1 className="text-2xl font-bold text-secondary">Manajemen Artikel Blog</h1>
+          <p className="text-gray-500 text-sm">Kelola postingan blog dan berita terbaru.</p>
         </div>
-        <button 
-          onClick={handleAddNew}
-          className="bg-primary hover:bg-primary-dark text-white px-5 py-2.5 rounded-xl flex items-center gap-2 transition font-bold shadow-lg shadow-primary/30 active:scale-95"
-        >
-          <Plus size={20} /> Tulis Artikel
-        </button>
+        
+        {!isFormOpen && (
+          <button 
+            onClick={() => {
+              handleCloseForm(); // Reset state dulu biar bersih
+              setIsFormOpen(true);
+            }}
+            className="bg-primary hover:bg-primary-dark text-white px-5 py-2.5 rounded-xl flex items-center gap-2 transition font-bold shadow-lg shadow-primary/30 active:scale-95"
+          >
+            <Plus size={20} /> Tulis Artikel
+          </button>
+        )}
       </div>
 
-      {/* Table Section */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-        {loading ? (
-          <div className="p-12 flex justify-center">
-            <Loader2 className="animate-spin text-primary w-8 h-8" />
+      {/* Form Section */}
+      {isFormOpen && (
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 mb-8 animate-fade-in-down">
+          <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-100">
+            <h3 className="text-lg font-bold text-gray-700">
+              {isEditMode ? 'Edit Artikel' : 'Buat Artikel Baru'}
+            </h3>
+            <button onClick={handleCloseForm} className="p-2 hover:bg-red-50 rounded-full transition">
+              <X className="text-gray-400 hover:text-red-500" />
+            </button>
           </div>
+          
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {/* ... (Bagian input form sama seperti sebelumnya, tidak ada perubahan logika di sini) ... */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div>
+                <label className="block text-sm font-bold text-gray-600 mb-2">Judul Artikel</label>
+                <input required name="title" value={formData.title} onChange={handleChange} className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition" placeholder="Judul artikel..." />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-600 mb-2">Kategori</label>
+                <select name="category" value={formData.category} onChange={handleChange} className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition bg-white">
+                  <option>General</option>
+                  <option>Travel Tips</option>
+                  <option>Destinations</option>
+                  <option>Hotel Reviews</option>
+                  <option>News</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-gray-600 mb-2">Konten</label>
+              <textarea required name="content" rows="6" value={formData.content} onChange={handleChange} className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition" placeholder="Isi artikel..." />
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-gray-600 mb-2">Gambar Cover</label>
+              <div className="flex items-center gap-4 p-4 border border-dashed border-gray-300 rounded-xl bg-gray-50">
+                <label className="cursor-pointer bg-white px-4 py-2 rounded-lg border border-gray-200 hover:bg-gray-50 shadow-sm flex items-center gap-2 text-gray-600 transition">
+                  <Image size={18} /> {isEditMode ? 'Ganti Gambar' : 'Pilih Gambar'}
+                  <input type="file" onChange={handleImageChange} className="hidden" accept="image/*" />
+                </label>
+                {preview ? (
+                  <img src={preview} alt="Preview" className="h-16 w-24 object-cover rounded-lg border border-gray-200 shadow-sm" />
+                ) : (
+                  <span className="text-sm text-gray-400">Belum ada gambar dipilih</span>
+                )}
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-4">
+              <button type="submit" disabled={loading} className="bg-primary text-white px-8 py-2.5 rounded-xl font-bold hover:bg-primary-dark disabled:opacity-70 shadow-lg shadow-primary/30 transition active:scale-95">
+                {loading ? (
+                  <span className="flex items-center gap-2"><Loader2 className="animate-spin" size={18}/> Menyimpan...</span>
+                ) : (
+                  isEditMode ? 'Simpan Perubahan' : 'Terbitkan Artikel'
+                )}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* Table List */}
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+        {fetchLoading ? (
+          <div className="p-12 flex justify-center"><Loader2 className="animate-spin text-primary w-8 h-8" /></div>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full text-left border-collapse">
               <thead>
                 <tr className="bg-gray-50 text-gray-600 uppercase text-xs font-bold tracking-wider border-b border-gray-100">
-                  <th className="py-4 px-6 min-w-[80px]">Cover</th>
-                  <th className="py-4 px-6 min-w-[250px]">Judul & Kategori</th>
-                  <th className="py-4 px-6 min-w-[150px]">Info Penulis</th>
-                  <th className="py-4 px-6 min-w-[100px] text-center">Aksi</th>
+                  <th className="py-4 px-6 min-w-[300px]">Artikel</th>
+                  <th className="py-4 px-6 min-w-[150px]">Kategori</th>
+                  <th className="py-4 px-6 min-w-[150px]">Tanggal</th>
+                  <th className="py-4 px-6 text-center">Aksi</th>
                 </tr>
               </thead>
               <tbody className="text-gray-600 text-sm font-medium divide-y divide-gray-100">
-                {blogs.length > 0 ? (
-                  blogs.map((blog) => (
-                    <tr key={blog.id || blog._id} className="hover:bg-gray-50 transition group">
-                      <td className="py-4 px-6 align-middle">
+                {blogs.map((blog) => (
+                  <tr key={blog.id || blog._id} className="hover:bg-gray-50 transition">
+                    <td className="py-4 px-6 align-middle">
+                      <div className="flex items-center gap-4">
+                        {/* Logic Preview Gambar di Tabel diperbaiki */}
                         {blog.imageUrl ? (
                           <img 
-                            src={blog.imageUrl} 
-                            alt={blog.title} 
-                            className="w-20 h-14 object-cover rounded-lg shadow-sm border border-gray-100 group-hover:scale-105 transition duration-300"
+                            className="w-20 h-14 object-cover rounded-lg shadow-sm border border-gray-100" 
+                            src={getImageUrl(blog.imageUrl)} 
+                            alt="" 
                           />
                         ) : (
-                          <div className="w-20 h-14 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400 border border-gray-200">
-                            <ImageIcon size={20} />
+                          <div className="w-20 h-14 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400">
+                            <Image size={20} />
                           </div>
                         )}
-                      </td>
-                      <td className="py-4 px-6 align-middle">
-                        <div className="text-secondary font-bold text-base line-clamp-1 mb-1">{blog.title}</div>
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border
-                          ${blog.category === 'News' ? 'bg-blue-50 text-blue-700 border-blue-100' : 
-                            blog.category === 'Travel Tips' ? 'bg-green-50 text-green-700 border-green-100' : 
-                            'bg-purple-50 text-purple-700 border-purple-100'
-                          }`}>
-                          {blog.category}
-                        </span>
-                      </td>
-                      <td className="py-4 px-6 align-middle">
-                        <div className="flex flex-col gap-1 text-xs text-gray-500">
-                          <div className="flex items-center gap-1">
-                             <User size={12} /> {blog.author || 'Admin'}
-                          </div>
-                          <div className="flex items-center gap-1">
-                             <Calendar size={12} /> {new Date(blog.createdAt).toLocaleDateString('id-ID')}
+                        <div>
+                          <div className="text-secondary font-bold text-base line-clamp-1">{blog.title}</div>
+                          <div className="text-xs text-gray-400 mt-1 flex items-center gap-1">
+                            Author: {blog.author || 'Admin'}
                           </div>
                         </div>
-                      </td>
-                      <td className="py-4 px-6 text-center align-middle">
-                        <div className="flex items-center justify-center gap-2">
-                          <button 
-                            onClick={() => handleEdit(blog)}
-                            className="p-2 rounded-lg bg-yellow-50 text-yellow-600 hover:bg-yellow-100 border border-yellow-200 transition active:scale-95"
-                            title="Edit Artikel"
-                          >
-                            <Edit size={18} />
-                          </button>
-                          
-                          <button 
-                            onClick={() => handleDelete(blog.id || blog._id)}
-                            className="p-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 transition active:scale-95"
-                            title="Hapus Artikel"
-                          >
-                            <Trash2 size={18} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
+                      </div>
+                    </td>
+
+                    <td className="py-4 px-6 align-middle">
+                      <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-100">
+                        {blog.category}
+                      </span>
+                    </td>
+
+                    <td className="py-4 px-6 align-middle">
+                      <div className="flex items-center gap-2 text-gray-500">
+                        <Calendar size={14} />
+                        {new Date(blog.createdAt).toLocaleDateString('id-ID', {
+                          year: 'numeric', month: 'long', day: 'numeric'
+                        })}
+                      </div>
+                    </td>
+
+                    <td className="py-4 px-6 text-center align-middle">
+                      <div className="flex items-center justify-center gap-2">
+                        {/* TOMBOL EDIT DITAMBAHKAN DI SINI */}
+                        <button 
+                          onClick={() => handleEditClick(blog)}
+                          className="p-2 rounded-lg bg-yellow-50 text-yellow-600 hover:bg-yellow-100 border border-yellow-200 transition active:scale-95"
+                          title="Edit Artikel"
+                        >
+                          <Edit size={18} />
+                        </button>
+
+                        <button 
+                          onClick={() => handleDelete(blog.id || blog._id)} 
+                          className="p-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 transition active:scale-95"
+                          title="Hapus Artikel"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                
+                {blogs.length === 0 && (
                   <tr>
                     <td colSpan="4" className="p-12 text-center text-gray-500">
                       <div className="flex flex-col items-center justify-center">
                         <div className="bg-gray-100 p-4 rounded-full mb-3">
-                          <BookOpen size={32} className="text-gray-400"/>
+                          <FileText size={32} className="text-gray-400"/>
                         </div>
                         <p className="font-medium">Belum ada artikel blog.</p>
-                        <p className="text-sm mt-1">Mulai tulis artikel untuk menarik pengunjung.</p>
                       </div>
                     </td>
                   </tr>
