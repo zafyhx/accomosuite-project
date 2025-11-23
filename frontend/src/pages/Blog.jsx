@@ -1,23 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
-import { Calendar, User, ArrowRight, Tag } from 'lucide-react'; // Pastikan install lucide-react
+import { Calendar, User, ArrowRight, Tag } from 'lucide-react';
 
 const Blog = () => {
   const [blogs, setBlogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState('All');
 
-  // Kategori statis untuk filter (bisa disesuaikan)
   const categories = ["All", "Travel Tips", "Destinations", "Hotel Reviews", "News"];
 
   useEffect(() => {
     const fetchBlogs = async () => {
       try {
-        // Mengambil data dari backend yang baru kita buat
-        // Sesuaikan URL jika backend Anda running di port berbeda
-        // Nanti bisa diganti dengan instance axios yang sudah dikonfigurasi
-        const { data } = await axios.get('/api/blogs'); 
+        const { data } = await axios.get('/api/blogs');
         setBlogs(data);
       } catch (error) {
         console.error("Error fetching blogs:", error);
@@ -28,7 +24,6 @@ const Blog = () => {
     fetchBlogs();
   }, []);
 
-  // Filter logika
   const filteredBlogs = activeCategory === 'All' 
     ? blogs 
     : blogs.filter(blog => blog.category === activeCategory);
@@ -43,10 +38,9 @@ const Blog = () => {
 
   return (
     <div className="bg-gray-50 min-h-screen pb-12">
-      {/* 1. HERO SECTION - Mengadopsi gaya 'Travel Stories' */}
+      {/* HERO SECTION */}
       <div className="relative bg-secondary text-white py-20 px-6 text-center mb-10">
         <div className="absolute inset-0 overflow-hidden">
-           {/* Background pattern atau image gelap */}
            <div className="absolute inset-0 bg-black opacity-50"></div>
            <img 
              src="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?ixlib=rb-4.0.3&auto=format&fit=crop&w=2021&q=80" 
@@ -65,7 +59,7 @@ const Blog = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* 2. CATEGORY FILTER */}
+        {/* FILTER */}
         <div className="flex flex-wrap justify-center gap-3 mb-10">
           {categories.map((cat) => (
             <button
@@ -81,16 +75,19 @@ const Blog = () => {
           ))}
         </div>
 
-        {/* 3. BLOG GRID */}
+        {/* BLOG GRID */}
         {filteredBlogs.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredBlogs.map((blog) => (
-              <div key={blog.id} className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-shadow duration-300 overflow-hidden group flex flex-col h-full">
+              <div key={blog._id} className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-shadow duration-300 overflow-hidden group flex flex-col h-full">
                 
                 {/* Image Container */}
                 <div className="relative h-48 overflow-hidden">
+                  {/* FIX IMAGE URL: Tambahkan localhost:5000 */}
                   <img 
-                    src={blog.imageUrl} 
+                    src={blog.imageUrl && !blog.imageUrl.startsWith('http') 
+                        ? `http://localhost:5000${blog.imageUrl}` 
+                        : blog.imageUrl} 
                     alt={blog.title} 
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                   />
@@ -121,12 +118,12 @@ const Blog = () => {
                   </h3>
                   
                   <p className="text-gray-600 text-sm mb-4 line-clamp-3 flex-1">
-                    {/* Menghilangkan tag HTML sederhana untuk preview */}
                     {blog.content.replace(/<[^>]*>?/gm, '').substring(0, 120)}...
                   </p>
 
+                  {/* FIX LINK ID: Gunakan blog._id */}
                   <Link 
-                    to={`/blog/${blog.id}`} 
+                    to={`/blog/${blog._id}`} 
                     className="inline-flex items-center text-primary font-semibold text-sm hover:underline mt-auto"
                   >
                     Baca Selengkapnya <ArrowRight className="w-4 h-4 ml-1" />
@@ -141,7 +138,6 @@ const Blog = () => {
                <Tag className="w-8 h-8 text-gray-400" />
             </div>
             <h3 className="text-lg font-medium text-gray-900">Belum ada artikel</h3>
-            <p className="text-gray-500">Coba pilih kategori lain atau kembali lagi nanti.</p>
           </div>
         )}
       </div>

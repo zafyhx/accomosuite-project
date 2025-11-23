@@ -12,20 +12,28 @@ const BlogDetail = () => {
   useEffect(() => {
     const fetchBlogDetail = async () => {
       try {
+        // Cek ID di console untuk debugging
+        console.log("Fetching Blog ID:", id);
         const { data } = await axios.get(`/api/blogs/${id}`);
         setBlog(data);
       } catch (err) {
+        console.error(err);
         setError("Artikel tidak ditemukan atau terjadi kesalahan.");
       } finally {
         setLoading(false);
       }
     };
-    fetchBlogDetail();
+    if (id) fetchBlogDetail();
   }, [id]);
 
   if (loading) return <div className="text-center py-20">Loading...</div>;
   if (error) return <div className="text-center py-20 text-red-500">{error}</div>;
   if (!blog) return null;
+
+  // FIX IMAGE URL LOGIC
+  const imageUrl = blog.imageUrl && !blog.imageUrl.startsWith('http') 
+      ? `http://localhost:5000${blog.imageUrl}` 
+      : (blog.imageUrl || "https://via.placeholder.com/800x400");
 
   return (
     <div className="bg-gray-50 min-h-screen py-12 px-4 sm:px-6 lg:px-8">
@@ -34,7 +42,7 @@ const BlogDetail = () => {
         {/* Header Image */}
         <div className="relative h-64 md:h-96 w-full">
           <img 
-            src={blog.imageUrl} 
+            src={imageUrl} 
             alt={blog.title} 
             className="w-full h-full object-cover"
           />
@@ -70,12 +78,10 @@ const BlogDetail = () => {
             {blog.title}
           </h1>
 
-          {/* Render Text with Line Breaks */}
           <div className="prose prose-lg max-w-none text-gray-700 whitespace-pre-wrap leading-relaxed">
             {blog.content}
           </div>
 
-          {/* Divider */}
           <hr className="my-12 border-gray-200" />
 
           <div className="bg-gray-50 p-6 rounded-xl border border-gray-100 text-center">

@@ -12,7 +12,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import AdminLayout from "./layouts/AdminLayout";
 import AdminBookings from "./pages/admin/AdminBookings";
 import DashboardHome from "./pages/admin/DashboardHome";
-import ManageSuites from "./pages/admin/ManageSuites";
+import ManageSuites from "./pages/admin/ManageSuite";
 import SuiteForm from "./pages/admin/SuiteForm";
 
 //--- HALAMAN USER ---//
