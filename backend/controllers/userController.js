@@ -1,3 +1,4 @@
+const generateToken = require('../utils/generateToken');
 const User = require('../models/User');
 
 // @desc    Get all users
@@ -66,4 +67,48 @@ const updateUserRole = async (req, res) => {
   }
 };
 
-module.exports = { getAllUsers, deleteUser, updateUserRole };
+// @desc    Update user profile (Name, Email, Password)
+// @route   PUT /api/users/profile
+// @access  Private
+const updateUserProfile = async (req, res) => {
+  try {
+
+    const user = await User.findById(req.user._id).select('+password');
+
+    if (!user) {
+      return res.status(404).json({ message: 'User tidak ditemukan' });
+    }
+
+    // Update fields
+    user.name = req.body.name || user.name;
+    user.email = req.body.email || user.email;
+
+    // Hanya set password jika user mengirim nilai baru
+    if (req.body.password && req.body.password.trim() !== "") {
+      user.password = req.body.password; // Middleware akan hash otomatis
+    }
+
+    // Simpan perubahan 
+    const updatedUser = await user.save();
+
+    // Generate token baru
+    const token = generateToken(updatedUser._id);
+
+    res.json({
+      _id: updatedUser._id,
+      name: updatedUser.name,
+      email: updatedUser.email,
+      role: updatedUser.role,
+      token: token,
+    });
+
+  } catch (error) {
+    console.error("❌ Update Profile Error:", error);
+    res.status(500).json({ 
+      message: 'Gagal update profil', 
+      error: error.message 
+    });
+  }
+};
+
+module.exports = { getAllUsers, deleteUser, updateUserRole, updateUserProfile };

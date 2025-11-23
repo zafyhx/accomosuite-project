@@ -21,6 +21,7 @@ import BookingSuccess from "./pages/BookingSuccess";
 import MyBookings from "./pages/MyBookings";
 import SuiteDetail from "./pages/SuiteDetail";
 import CheckIn from './pages/CheckIn';
+import UserProfile from './pages/UserProfile';
 
 //--- HALAMAN BLOG ---//
 import Blog from './pages/Blog';
@@ -122,7 +123,7 @@ const Home = () => {
                      </div>
                 </Link>
               )}
-              
+            <Link to="/profile">
               <div className="p-4 bg-gray-50 rounded-xl border border-gray-200 cursor-pointer active:scale-95 hover:shadow-md transition group flex items-center gap-3 h-full">
                 <div className="bg-gray-600 w-10 h-10 rounded-lg flex items-center justify-center text-white shadow-gray-500/20 group-hover:scale-105 transition">
                   <Settings size={18} />
@@ -132,7 +133,7 @@ const Home = () => {
                   <p className="text-xs text-gray-500">Profil & Keamanan</p>
                 </div>
               </div>
-
+              </Link>
             </div>
           </div>
         )}
@@ -230,7 +231,8 @@ function App() {
         {/* Rute User yang Dilindungi */}
         <Route path="/my-bookings" element={<ProtectedRoute><MyBookings /></ProtectedRoute>} />
         <Route path="/check-in/:id" element={<ProtectedRoute><CheckIn /></ProtectedRoute>} />
-        
+        <Route path="/profile" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
+
         {/* Rute Detail Properti (Publik) */}
         <Route path="/suites/:id" element={<SuiteDetail />} />
         <Route path="/booking-success" element={<BookingSuccess />} />

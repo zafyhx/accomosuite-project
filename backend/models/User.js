@@ -54,25 +54,18 @@ const userSchema = new mongoose.Schema({
   timestamps: true // OTOMATIS: Membuat kolom 'createdAt' (tgl daftar) dan 'updatedAt' (tgl edit profil)
 });
 
-// --- MIDDLEWARE (FUNGSI PENCEGAT) ---
+// --- MIDDLEWARE --- //
 
-// Pre-Save Hook: Fungsi ini jalan OTOMATIS sesaat SEBELUM data disimpan ke database
-userSchema.pre('save', async function(next) {
-  // Cek: Apakah user mengubah passwordnya?
-  // Kalau user cuma ganti Nama/No HP, maka password jangan di-acak ulang (nanti malah error)
+// Pre-Save Hook
+userSchema.pre('save', async function() { 
+  // Cek: Apakah password dimodifikasi?
   if (!this.isModified('password')) {
-    next(); // Lanjut simpan, jangan lakukan apa-apa
+    return; 
   }
-
-  // PROSES ENKRIPSI (HASHING)
-  // Salt: Bumbu rahasia random (10 putaran) agar hasil acakan makin sulit ditebak
+  // Hash password baru
   const salt = await bcrypt.genSalt(10);
-  
-  // Hash: Mengubah "rahasia123" menjadi "$2a$10$X7w..."
   this.password = await bcrypt.hash(this.password, salt);
 });
-
-// --- METHOD TAMBAHAN (Bisa dipanggil di controller nanti) ---
 
 // Fungsi untuk mencocokkan password saat Login
 // Membandingkan password yg diketik user (enteredPassword) dengan password acak di database
