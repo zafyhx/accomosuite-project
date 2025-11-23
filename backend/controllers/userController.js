@@ -1,5 +1,6 @@
 const generateToken = require('../utils/generateToken');
 const User = require('../models/User');
+const { addLog } = require('./logController');
 
 // @desc    Get all users
 // @route   GET /api/users
@@ -23,6 +24,7 @@ const deleteUser = async (req, res) => {
 
     if (user) {
       await user.deleteOne();
+      await addLog(req.user._id, "DELETE_USER", `Menghapus pengguna: ${userName}`);
       res.json({ message: 'User berhasil dihapus' });
     } else {
       res.status(404).json({ message: 'User tidak ditemukan' });
@@ -53,6 +55,12 @@ const updateUserRole = async (req, res) => {
       { role: newRole },
       { new: true } // Opsi ini agar yang dikembalikan adalah data setelah update
     ).select('-password'); // Jangan kirim balik password
+
+    await addLog(
+      req.user._id, 
+      "UPDATE_ROLE", 
+      `Mengubah role "${updatedUser.name}" menjadi ${updatedUser.role}`
+    );
 
     res.json({
       _id: updatedUser._id,

@@ -1,4 +1,5 @@
 const Suite = require('../models/Suite');
+const { addLog } = require('./logController');
 
 // @desc    Ambil Semua Data Suite (Untuk Halaman Depan User)
 // @route   GET /api/suites
@@ -50,6 +51,14 @@ const createSuite = async (req, res) => {
     });
 
     const createdSuite = await suite.save();
+
+    await addLog(
+      req.user._id, 
+      "CREATE_SUITE", 
+      `Menambahkan properti baru: ${createdSuite.name}`,
+      createdSuite._id
+    );
+
     res.status(201).json(createdSuite);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -61,16 +70,29 @@ const createSuite = async (req, res) => {
 // @access  Private/Admin
 const deleteSuite = async (req, res) => {
   try {
+
     const suite = await Suite.findById(req.params.id);
 
     if (suite) {
+
+      const suiteName = suite.name; 
+
       await suite.deleteOne();
+
+      await addLog(
+        req.user._id, 
+        "DELETE_SUITE", 
+        `Menghapus properti: ${suiteName}`,
+        req.params.id
+      );
+
       res.json({ message: 'Suite berhasil dihapus' });
     } else {
       res.status(404).json({ message: 'Suite tidak ditemukan' });
     }
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("Delete Suite Error:", error); // Cek terminal jika masih error
+    res.status(500).json({ message: 'Gagal menghapus Suite: ' + error.message });
   }
 };
 

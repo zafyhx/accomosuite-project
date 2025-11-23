@@ -9,6 +9,7 @@ const authRoutes = require('./routes/authRoutes');
 const suiteRoutes = require('./routes/suiteRoutes');
 const dirname = path.resolve();
 const userRoutes = require('./routes/userRoutes'); 
+const logRoutes = require('./routes/logRoutes');
 
 // Load Config dari .env
 dotenv.config();
@@ -41,6 +42,9 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Gunakan Route Users
 app.use('/api/users', userRoutes); 
+
+// Gunakan Route Logs
+app.use('/api/logs', logRoutes); 
 
 // Route Percobaan (Test Server)
 app.get('/', (req, res) => {

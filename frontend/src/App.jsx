@@ -15,6 +15,7 @@ import DashboardHome from "./pages/admin/DashboardHome";
 import ManageSuites from "./pages/admin/ManageSuite";
 import SuiteForm from "./pages/admin/SuiteForm";
 import ManageUsers from "./pages/admin/ManageUsers";
+import ActivityLogs from './pages/admin/ActivityLogs';
 
 //--- HALAMAN USER ---//
 import BookingSuccess from "./pages/BookingSuccess";
@@ -260,7 +261,7 @@ function App() {
           <Route path="blogs" element={<ManageBlogs />} />
           
           {/* /admin/logs */}
-          <Route path="logs" element={<div>Halaman Log Aktivitas</div>} /> 
+          <Route path="logs" element={<ActivityLogs />} />
 
           {/* /admin/users */}
           <Route path="users" element={<ManageUsers />} />

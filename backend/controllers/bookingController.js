@@ -1,5 +1,6 @@
 const Booking = require('../models/Booking'); // Import model Booking
 const Suite = require('../models/Suite'); // Import model Suite
+const { addLog } = require('./logController');
 
 // @desc    Buat Booking Baru (status awal: pending)
 // @route   POST /api/bookings
@@ -113,9 +114,17 @@ const adminUpdateBookingStatus = async (req, res) => {
             return res.status(400).json({ message: 'Status tidak valid' });
         }
 
+        const oldStatus = booking.status;
         // Lakukan update
         booking.status = status;
         const updatedBooking = await booking.save();
+
+        await addLog(
+        req.user._id, 
+        "UPDATE_BOOKING", 
+        `Mengubah status booking #${updatedBooking._id} dari '${oldStatus}' menjadi '${status}'`,
+        updatedBooking._id
+      );
         
         res.json(updatedBooking);
 

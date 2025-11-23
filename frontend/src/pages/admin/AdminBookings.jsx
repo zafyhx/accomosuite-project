@@ -1,12 +1,10 @@
 import { useState, useEffect, useContext } from "react";
 import axios from "axios";
-// FIX PATH KRUSIAL: Ubah ke path yang lebih tinggi, mengasumsikan struktur folder berbeda
 import { AuthContext } from "../../context/AuthContext"; 
-import { Clock, CheckCircle2, XCircle, Search, Calendar, Loader2, Ban, AlertTriangle } from "lucide-react";
+import { Clock, CheckCircle2, XCircle, Calendar, Loader2, Ban, AlertTriangle, Check, X } from "lucide-react";
 import { useNavigate } from "react-router-dom"; 
 
 const AdminBookings = () => {
-    // FIX: Pastikan path Context benar untuk Admin Pages
     const { user, logout } = useContext(AuthContext); 
     const navigate = useNavigate();
     const [bookings, setBookings] = useState([]);
@@ -46,12 +44,29 @@ const AdminBookings = () => {
         }
     }, [user]); 
 
-    const handleUpdateStatus = async (bookingId, newStatus) => {
-        const actionText = newStatus === 'cancelled' ? 'BATALKAN FINAL' : 
-                         newStatus === 'confirmed' ? 'TOLAK PEMBATALAN (Konfirmasi Ulang)' : 
-                         newStatus.toUpperCase().replace(/_/g, ' ');
+    // FIX: Menambahkan parameter currentStatus agar logika alert benar
+    const handleUpdateStatus = async (bookingId, newStatus, currentStatus) => {
+        let actionText = "";
+
+        if (newStatus === 'confirmed') {
+            if (currentStatus === 'pending') {
+                actionText = "MENERIMA (Konfirmasi) pesanan baru ini";
+            } else if (currentStatus === 'cancellation_requested') {
+                actionText = "MENOLAK pengajuan pembatalan ini (Pesanan kembali Aktif)";
+            } else {
+                actionText = "Mengubah status menjadi Confirmed";
+            }
+        } else if (newStatus === 'cancelled') {
+            actionText = currentStatus === 'cancellation_requested' 
+                ? "MENYETUJUI pembatalan ini (Dana akan dikembalikan manual)" 
+                : "MEMBATALKAN pesanan ini secara sepihak";
+        } else if (newStatus === 'completed') {
+            actionText = "Menandai pesanan ini SELESAI (Tamu Check-out)";
+        } else {
+            actionText = `Mengubah status menjadi ${newStatus}`;
+        }
         
-        if (!window.confirm(`Yakin ingin ${actionText} booking ID ${bookingId.substring(0, 6)}...?`)) {
+        if (!window.confirm(`Yakin ingin ${actionText}?`)) {
             return;
         }
 
@@ -65,7 +80,6 @@ const AdminBookings = () => {
             };
             await axios.put(`/api/bookings/${bookingId}/status`, { status: newStatus }, config);
             
-            // Refresh data setelah sukses update
             fetchAllBookings(); 
             
         } catch (error) {
@@ -81,6 +95,7 @@ const AdminBookings = () => {
         switch (status) {
             case 'pending': return { icon: <Clock size={14} />, color: 'bg-yellow-100 text-yellow-700 ' + defaultStyle };
             case 'confirmed': return { icon: <CheckCircle2 size={14} />, color: 'bg-primary/20 text-primary ' + defaultStyle }; 
+            case 'checked_in': return { icon: <CheckCircle2 size={14} />, color: 'bg-blue-100 text-blue-700 ' + defaultStyle }; 
             case 'cancellation_requested': return { icon: <AlertTriangle size={14} />, color: 'bg-orange-100 text-orange-700 ' + defaultStyle }; 
             case 'cancelled': return { icon: <Ban size={14} />, color: 'bg-red-100 text-red-700 ' + defaultStyle };
             case 'completed': return { icon: <CheckCircle2 size={14} />, color: 'bg-green-100 text-green-700 ' + defaultStyle };
@@ -160,7 +175,8 @@ const AdminBookings = () => {
                                                     {b.status === 'pending' && (
                                                         // Aksi: KONFIRMASI PESANAN BARU (Admin Approve)
                                                         <button 
-                                                            onClick={() => handleUpdateStatus(b._id, 'confirmed')}
+                                                            // FIX: Kirim status saat ini ('pending')
+                                                            onClick={() => handleUpdateStatus(b._id, 'confirmed', b.status)}
                                                             disabled={isBusy}
                                                             className={`bg-primary hover:bg-primary-dark text-white px-3 py-1.5 rounded-lg text-xs font-medium active:scale-95 transition flex items-center gap-1 ${isBusy && 'opacity-50 cursor-not-allowed'}`}
                                                         >
@@ -172,26 +188,29 @@ const AdminBookings = () => {
                                                         // Aksi: APPROVAL PEMBATALAN
                                                         <>
                                                             <button 
-                                                                onClick={() => handleUpdateStatus(b._id, 'cancelled')}
+                                                                onClick={() => handleUpdateStatus(b._id, 'cancelled', b.status)}
                                                                 disabled={isBusy}
+                                                                title="Setujui Pembatalan"
                                                                 className={`bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium active:scale-95 transition flex items-center gap-1 ${isBusy && 'opacity-50 cursor-not-allowed'}`}
                                                             >
-                                                                {isBusy ? <Loader2 size={14} className="animate-spin"/> : 'Terima Batal'}
+                                                                {isBusy ? <Loader2 size={14} className="animate-spin"/> : <><Check size={14}/> Terima</>}
                                                             </button>
                                                             <button 
-                                                                onClick={() => handleUpdateStatus(b._id, 'confirmed')}
+                                                                // FIX: Kirim status saat ini ('cancellation_requested')
+                                                                onClick={() => handleUpdateStatus(b._id, 'confirmed', b.status)}
                                                                 disabled={isBusy}
-                                                                className={`bg-gray-300 hover:bg-gray-400 text-secondary px-3 py-1.5 rounded-lg text-xs font-medium active:scale-95 transition flex items-center gap-1 ${isBusy && 'opacity-50 cursor-not-allowed'}`}
+                                                                title="Tolak Pembatalan (Kembalikan ke Confirmed)"
+                                                                className={`bg-gray-500 hover:bg-gray-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium active:scale-95 transition flex items-center gap-1 ${isBusy && 'opacity-50 cursor-not-allowed'}`}
                                                             >
-                                                                {isBusy ? <Loader2 size={14} className="animate-spin"/> : 'Tolak Batal'}
+                                                                {isBusy ? <Loader2 size={14} className="animate-spin"/> : <><X size={14}/> Tolak</>}
                                                             </button>
                                                         </>
                                                     )}
                                                     
-                                                    {b.status === 'confirmed' && (
+                                                    {(b.status === 'confirmed' || b.status === 'checked_in') && (
                                                         // Aksi: TANDAI SELESAI (CHECKOUT)
                                                         <button 
-                                                            onClick={() => handleUpdateStatus(b._id, 'completed')}
+                                                            onClick={() => handleUpdateStatus(b._id, 'completed', b.status)}
                                                             disabled={isBusy}
                                                             className={`bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium active:scale-95 transition flex items-center gap-1 ${isBusy && 'opacity-50 cursor-not-allowed'}`}
                                                         >
