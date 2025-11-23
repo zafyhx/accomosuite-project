@@ -20,6 +20,7 @@ import ManageUsers from "./pages/admin/ManageUsers";
 import BookingSuccess from "./pages/BookingSuccess";
 import MyBookings from "./pages/MyBookings";
 import SuiteDetail from "./pages/SuiteDetail";
+import CheckIn from './pages/CheckIn';
 
 //--- HALAMAN BLOG ---//
 import Blog from './pages/Blog';
@@ -228,6 +229,7 @@ function App() {
         
         {/* Rute User yang Dilindungi */}
         <Route path="/my-bookings" element={<ProtectedRoute><MyBookings /></ProtectedRoute>} />
+        <Route path="/check-in/:id" element={<ProtectedRoute><CheckIn /></ProtectedRoute>} />
         
         {/* Rute Detail Properti (Publik) */}
         <Route path="/suites/:id" element={<SuiteDetail />} />

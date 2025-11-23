@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { protect, admin } = require('../middleware/authMiddleware'); 
+const upload = require('../middleware/uploadMiddleware');
 
 const { 
   createBooking, 
@@ -8,8 +9,11 @@ const {
   cancelBooking, 
   getAllBookings, 
   adminUpdateBookingStatus,
-  getDashboardStats
+  getDashboardStats,
+  onlineCheckIn
 } = require('../controllers/bookingController'); 
+
+
 
 // Prefix: /api/bookings
 
@@ -17,6 +21,7 @@ const {
 router.post('/', protect, createBooking); 
 router.get('/my-bookings', protect, getMyBookings); 
 router.put('/:id/cancel', protect, cancelBooking); 
+router.put('/:id/check-in', protect, upload.single('idCardImage'), onlineCheckIn);
 
 // Rute Admin
 router.get('/', protect, admin, getAllBookings); 

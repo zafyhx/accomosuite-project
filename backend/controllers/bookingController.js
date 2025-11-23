@@ -247,11 +247,64 @@ const getDashboardStats = async (req, res) => {
   }
 };
 
+// @desc    Process Online Check-in (Upload KTP & Arrival Time)
+// @route   PUT /api/bookings/:id/check-in
+// @access  Private (User Owner)
+const onlineCheckIn = async (req, res) => {
+  try {
+    const booking = await Booking.findById(req.params.id);
+
+    if (!booking) {
+      return res.status(404).json({ message: "Booking tidak ditemukan" });
+    }
+
+    // Validasi: Pastikan yang check-in adalah pemilik booking
+    if (booking.user.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+      return res.status(403).json({ message: "Tidak diizinkan" });
+    }
+
+    // Validasi: Hanya status 'confirmed' yang bisa check-in
+    if (booking.status !== 'confirmed') {
+      return res.status(400).json({ message: "Hanya booking berstatus Confirmed yang bisa Check-in" });
+    }
+
+    // Ambil data dari form
+    const { identityNumber, arrivalTime } = req.body;
+    
+    // Handle file KTP (jika ada)
+    let idCardImage = '';
+    if (req.file) {
+      idCardImage = `/uploads/${req.file.filename}`;
+    } else {
+      return res.status(400).json({ message: "Wajib upload foto identitas (KTP/SIM)" });
+    }
+
+    // Update data booking
+    booking.checkInDetails = {
+      identityNumber,
+      arrivalTime,
+      idCardImage,
+      checkInTime: new Date()
+    };
+    
+    booking.status = 'checked_in'; // Ubah status otomatis
+
+    const updatedBooking = await booking.save();
+
+    res.json({ message: "Check-in berhasil!", data: updatedBooking });
+
+  } catch (error) {
+    console.error("Check-in Error:", error);
+    res.status(500).json({ message: "Gagal memproses check-in: " + error.message });
+  }
+};
+
 module.exports = { 
     createBooking, 
     getMyBookings, 
     getAllBookings, 
     cancelBooking,
     adminUpdateBookingStatus,
-    getDashboardStats
+    getDashboardStats,
+    onlineCheckIn
 };

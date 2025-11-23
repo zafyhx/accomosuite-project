@@ -1,7 +1,6 @@
 import { useState, useEffect, useContext } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
-// Path benar: pages/ ke context/
 import { AuthContext } from "../context/AuthContext"; 
 import { 
   CalendarDays, 
@@ -12,9 +11,9 @@ import {
   Clock,
   CheckCircle2,
   XCircle,
-  ArrowLeft,
   Ban,
-  AlertTriangle 
+  AlertTriangle,
+  CheckCircle 
 } from "lucide-react";
 
 const MyBookings = () => {
@@ -93,13 +92,14 @@ const MyBookings = () => {
     });
   };
 
-  // Helper untuk warna status (Sesuai Cyan Segar)
+  // Helper untuk warna status 
   const getStatusBadge = (status) => {
     const defaultStyle = "px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border flex items-center gap-1 w-fit";
     switch (status) {
       case 'confirmed': return { icon: <CheckCircle2 size={14} />, color: 'bg-green-100 text-green-700 border-green-200 ' + defaultStyle };
+      case 'checked_in': return { icon: <CheckCircle2 size={14} />, color: 'bg-blue-100 text-blue-700 border-blue-200 ' + defaultStyle }; // Status Checked In
       case 'cancelled': return { icon: <Ban size={14} />, color: 'bg-red-100 text-red-700 border-red-200 ' + defaultStyle };
-      case 'cancellation_requested': return { icon: <AlertTriangle size={14} />, color: 'bg-orange-100 text-orange-700 border-orange-200 ' + defaultStyle }; // STATUS BARU
+      case 'cancellation_requested': return { icon: <AlertTriangle size={14} />, color: 'bg-orange-100 text-orange-700 border-orange-200 ' + defaultStyle };
       default: return { icon: <Clock size={14} />, color: 'bg-yellow-100 text-yellow-700 border-yellow-200 ' + defaultStyle }; // pending
     }
   };
@@ -169,7 +169,7 @@ const MyBookings = () => {
                     />
                     <div className="absolute top-4 left-4">
                       <span className={status.color}>
-                        {status.icon} {item.status.replace(/_/g, ' ').toUpperCase()} {/* Tampilkan status baru */}
+                        {status.icon} {item.status.replace(/_/g, ' ').toUpperCase()}
                       </span>
                     </div>
                   </div>
@@ -205,7 +205,7 @@ const MyBookings = () => {
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between pt-4 border-t border-gray-100 mt-2">
+                    <div className="flex flex-col sm:flex-row items-center justify-between pt-4 border-t border-gray-100 mt-2 gap-4">
                       <div>
                         <p className="text-xs text-gray-400">Total Pembayaran</p>
                         <p className="text-lg font-bold text-secondary flex items-center gap-1">
@@ -214,28 +214,47 @@ const MyBookings = () => {
                         </p>
                       </div>
 
-                      {/* Tombol Aksi Pembatalan */}
-                      {/* Hanya muncul jika status confirmed atau pending */}
-                      {(item.status === 'confirmed' || item.status === 'pending') ? (
-                        <button 
-                            onClick={() => handleCancelBooking(item._id, item.suite?.name)}
-                            disabled={isActionDisabled}
-                            className={`px-4 py-2 text-sm font-medium rounded-xl transition active:scale-95 shadow-lg flex items-center gap-2
-                                ${isActionDisabled 
-                                    ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
-                                    : 'bg-red-500 hover:bg-red-600 text-white shadow-red-500/30'
-                                }`}
-                        >
-                            {isActionDisabled ? <Loader2 size={16} className="animate-spin"/> : <Ban size={16}/>}
-                            {isActionDisabled ? 'Memproses Kirim' : 'Ajukan Pembatalan'}
-                        </button>
-                      ) : item.status === 'cancellation_requested' ? (
-                          <span className="text-sm font-medium text-orange-600 bg-orange-50 px-4 py-2 rounded-xl border border-orange-200 flex items-center gap-1">
-                            <AlertTriangle size={16}/> Menunggu Admin
-                          </span>
-                      ) : (
-                        <span className="text-xs text-gray-500 italic">Aksi selesai</span>
-                      )}
+                      {/* AREA TOMBOL AKSI */}
+                      <div className="flex gap-3">
+                        
+                        {/* 1. Tombol Check-in (Hanya muncul jika Confirmed) */}
+                        {item.status === 'confirmed' && (
+                            <Link 
+                                to={`/check-in/${item._id}`}
+                                className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 shadow-lg shadow-green-500/30 transition active:scale-95"
+                            >
+                                <CheckCircle size={16} /> Check-in Online
+                            </Link>
+                        )}
+
+                        {/* 2. Tombol Batalkan (Muncul jika Pending/Confirmed) */}
+                        {(item.status === 'confirmed' || item.status === 'pending') && (
+                            <button 
+                                onClick={() => handleCancelBooking(item._id, item.suite?.name)}
+                                disabled={isActionDisabled}
+                                className={`px-4 py-2 text-sm font-medium rounded-xl transition active:scale-95 shadow-lg flex items-center gap-2
+                                    ${isActionDisabled 
+                                        ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                                        : 'bg-red-500 hover:bg-red-600 text-white shadow-red-500/30'
+                                    }`}
+                            >
+                                {isActionDisabled ? <Loader2 size={16} className="animate-spin"/> : <Ban size={16}/>}
+                                {isActionDisabled ? 'Memproses...' : 'Batal'}
+                            </button>
+                        )}
+
+                        {/* 3. Status Lain */}
+                        {item.status === 'cancellation_requested' && (
+                            <span className="text-sm font-medium text-orange-600 bg-orange-50 px-4 py-2 rounded-xl border border-orange-200 flex items-center gap-1">
+                                <AlertTriangle size={16}/> Menunggu Admin
+                            </span>
+                        )}
+                        
+                        {(item.status === 'checked_in' || item.status === 'completed' || item.status === 'cancelled') && (
+                            <span className="text-xs text-gray-500 italic py-2">Aksi selesai</span>
+                        )}
+
+                      </div>
                     </div>
 
                   </div>

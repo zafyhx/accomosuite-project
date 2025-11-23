@@ -29,9 +29,18 @@ const bookingSchema = new mongoose.Schema({
   // Status Pesanan
   status: {
     type: String,
-    enum: ['pending', 'confirmed', 'cancellation_requested', 'cancelled', 'completed'],
-    default: 'pending' // Default: Menunggu konfirmasi admin
+    enum: ['pending', 'confirmed', 'cancellation_requested', 'cancelled', 'checked_in', 'completed'],
+    default: 'pending', // Default: Menunggu konfirmasi admin
+  },
+
+  // Detail CheckIn
+  checkInDetails: {
+    identityNumber: { type: String },
+    arrivalTime: { type: String },
+    idCardImage: { type: String }, // Path gambar KTP
+    checkInTime: { type: Date }
   }
+
 }, { timestamps: true });
 
 module.exports = mongoose.model('Booking', bookingSchema);
