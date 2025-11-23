@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, BedDouble, CalendarCheck, BookOpen, LogOut, ShieldAlert, Settings, User } from "lucide-react";
+import { LayoutDashboard, BedDouble, CalendarCheck, BookOpen, LogOut, ShieldAlert, Settings, Users } from "lucide-react";
 
 // CATATAN: Warna Primary adalah Cyan Segar (#29D9D5)
 const AdminLayout = () => {
@@ -21,8 +21,9 @@ const AdminLayout = () => {
     { path: "/admin", icon: <LayoutDashboard size={20} />, label: "Dashboard Utama" },
     { path: "/admin/suites", icon: <BedDouble size={20} />, label: "Manajemen Suite" },
     { path: "/admin/bookings", icon: <CalendarCheck size={20} />, label: "Approval Reservasi" },
-    { path: "/admin/blogs", icon: <BookOpen size={20} />, label: "Manajemen Blog" }, // Diubah jadi 'blogs'
+    { path: "/admin/blogs", icon: <BookOpen size={20} />, label: "Manajemen Blog" }, 
     { path: "/admin/logs", icon: <ShieldAlert size={20} />, label: "Security Logs" },
+    { path: "/admin/users", icon: <Users size={20} />, label: "Manajemen User" },
   ];
 
   const getNavLinkClass = (path) => {

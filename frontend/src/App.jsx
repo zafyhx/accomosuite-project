@@ -14,6 +14,7 @@ import AdminBookings from "./pages/admin/AdminBookings";
 import DashboardHome from "./pages/admin/DashboardHome";
 import ManageSuites from "./pages/admin/ManageSuite";
 import SuiteForm from "./pages/admin/SuiteForm";
+import ManageUsers from "./pages/admin/ManageUsers";
 
 //--- HALAMAN USER ---//
 import BookingSuccess from "./pages/BookingSuccess";
@@ -237,7 +238,7 @@ function App() {
         <Route path="/blog/:id" element={<BlogDetail />} />
 
         {/* ============================================== */}
-        {/* RUTE ADMIN PANEL (Disatukan disini)            */}
+        {/*               RUTE ADMIN PANEL                 */}
         {/* ============================================== */}
         <Route path="/admin" element={<ProtectedRoute adminOnly={true}><AdminLayout /></ProtectedRoute>}>
           {/* /admin (index) -> Dashboard Home */}
@@ -256,6 +257,9 @@ function App() {
           
           {/* /admin/logs */}
           <Route path="logs" element={<div>Halaman Log Aktivitas</div>} /> 
+
+          {/* /admin/users */}
+          <Route path="users" element={<ManageUsers />} />
         </Route>
         
       </Routes>
