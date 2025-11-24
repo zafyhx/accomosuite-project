@@ -212,7 +212,7 @@ const DashboardHome = () => {
         {/* Grafik Reservasi vs Pembatalan (Grouped Bar Chart) */}
         <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
           <h3 className="text-lg font-bold text-secondary mb-6 flex items-center gap-2">
-            <BarChart3 size={20} className="text-blue-500"/> Reservasi vs Pembatalan
+            <BarChart3 size={20} className="text-blue-500"/> Tren Reservasi & Pembatalan
           </h3>
           <div className="h-64">
              <Bar 
@@ -290,7 +290,7 @@ const DashboardHome = () => {
 
         {/* 4. PIE CHART (KANAN) */}
         <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 flex flex-col">
-          <h3 className="text-lg font-bold text-secondary mb-4">Proporsi Aset</h3>
+          <h3 className="text-lg font-bold text-secondary mb-4">Grafik Properti</h3>
           <div className="flex-1 flex items-center justify-center h-64">
              <Doughnut 
                data={pieData} 
