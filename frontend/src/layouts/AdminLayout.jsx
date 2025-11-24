@@ -47,9 +47,11 @@ const AdminLayout = () => {
       <aside className="w-64 min-h-screen bg-white border-r border-gray-200 fixed h-full z-10 hidden md:flex flex-col justify-between">
         <div>
           <div className="h-20 flex items-center px-8 border-b border-gray-100">
+            <Link to="/" className="flex items-center gap-2"> 
             <h1 className="text-2xl font-bold text-primary tracking-tight">
               Accomo<span className="text-secondary">suite</span>
             </h1>
+            </Link>
           </div>
           <nav className="p-4 space-y-1">
             {menuItems.map((item) => (
