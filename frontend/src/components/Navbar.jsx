@@ -2,6 +2,8 @@ import { useContext, useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import { LogOut, User, Menu } from "lucide-react";
+// Pastikan path ini benar
+import LogoImage from '../assets/Logo.png'; 
 
 const Navbar = () => {
   const { user, logout } = useContext(AuthContext);
@@ -27,15 +29,16 @@ const Navbar = () => {
   const navBg = transparentMode ? "bg-transparent" : "bg-white shadow-md";
   const textColor = transparentMode ? "text-white" : "text-secondary";
   const logoColor = transparentMode ? "text-white" : "text-primary";
-  const lineColor = transparentMode ? "bg-white" : "bg-primary"; // Warna garis bawah
+  const lineColor = transparentMode ? "bg-white" : "bg-primary"; 
+  // Variabel ini tidak perlu jika ukurannya sama
+  const logoSizeClass = transparentMode ? "h-12" : "h-12" 
 
   const handleLogout = () => {
     logout();
     navigate("/login");
   };
 
-  // --- SUB-COMPONENT: Link Navigasi dengan Garis Bawah ---
-  // Ini komponen kecil khusus untuk membuat link yang ada garisnya
+  // --- SUB-COMPONENT: Link Navigasi dengan Garis Bawah (SUDAH DIPERBAIKI) ---
   const NavLink = ({ to, label }) => {
     const isActive = location.pathname === to; // Cek apakah kita sedang di halaman ini?
     
@@ -50,14 +53,25 @@ const Navbar = () => {
       </Link>
     );
   };
-
+  
   return (
     <nav className={`fixed w-full z-50 transition-all duration-300 ${navBg}`}>
       <div className="container mx-auto px-6 py-4 flex justify-between items-center">
         
         {/* 1. LOGO */}
-        <Link to="/" className={`text-2xl font-bold flex items-center gap-2 ${logoColor}`}>
-          Accomosuite
+        <Link to="/" className="flex items-center gap-2"> 
+          
+          <img 
+              src={LogoImage} 
+              alt="Accomosuite Logo" 
+              // Menggunakan h-12 (48px) yang dinamis/atau fixed
+              className={`${logoSizeClass} w-auto ${logoColor}`} 
+          />
+      
+          {/* Teks Branding (Menggunakan textColor agar Putih saat transparan) */}
+          <span className={`text-xl font-bold ${textColor}`}>
+              Accomosuite
+          </span>
         </Link>
 
         {/* 2. MENU TENGAH (Desktop) */}
@@ -106,20 +120,24 @@ const Navbar = () => {
             <Menu size={24} />
           </button>
         </div>
-      </div>
+      </div> {/* Penutup div container */}
 
       {/* MOBILE MENU */}
       {isMobileMenuOpen && (
         <div className="md:hidden bg-white absolute w-full shadow-lg border-t animate-fade-in-down">
           <div className="flex flex-col p-4 gap-4 text-secondary font-medium">
+            
             <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-primary">Home</Link>
-            <Link to="/about" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-primary">About</Link>
-            <Link to="/destination" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-primary">Destination</Link>
+            <Link to="/hotel" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-primary">Hotels</Link>
+            <Link to="/blog" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-primary">Blogs</Link>
+            <Link to="/contact" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-primary">Contacts</Link>
+            
           </div>
         </div>
-      )}
-    </nav>
-  );
-};
+      )} {/* Penutup conditional Mobile Menu */}
+
+    </nav> // <-- PENUTUP NAV BARU DI SINI
+  ); // <-- PENUTUP RETURN DI SINI
+}; // <-- PENUTUP KOMPONEN DI SINI
 
 export default Navbar;
