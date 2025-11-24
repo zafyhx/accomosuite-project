@@ -15,8 +15,9 @@ const Hero = () => {
   return (
     <div className="relative h-[106vh] flex items-center overflow-hidden">
       
-      {/* VIDEO BACKGROUND */}
-      <video
+      {/* VIDEO/FOTO BACKGROUND */}
+
+      {/* <video
         className="absolute top-0 left-0 w-full h-full object-cover"
         autoPlay
         loop
@@ -24,7 +25,14 @@ const Hero = () => {
         playsInline
       >
         <source src="/Video.mp4" type="video/mp4" />
-      </video>
+      </video> */}
+
+      <div 
+        className="absolute top-0 left-0 w-full h-full bg-cover bg-center"
+        style={{ 
+        backgroundImage: "url('/assets/background.jpg')" 
+        }}
+      />
       
       {/* Overlay */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70" />
@@ -141,7 +149,7 @@ const Hero = () => {
       </div>
 
       {/* Bottom Fade - Lebih pendek agar dashboard terlihat */}
-      <div className="absolute bottom-0 left-0 right-0 h-36 bg-gradient-to-t from-white to-transparent pointer-events-none" />
+      <div className="absolute bottom-0 left-0 right-0 h-56 bg-gradient-to-t from-white to-transparent pointer-events-none" />
 
     </div>
   );
