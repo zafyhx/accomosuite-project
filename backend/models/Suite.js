@@ -3,12 +3,12 @@ const mongoose = require('mongoose');
 const suiteSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: [true, 'Judul properti wajib diisi'], // Ganti istilah "Nama Kamar" jadi "Judul Properti"
+    required: [true, 'Judul properti wajib diisi'], 
     trim: true,
     maxlength: [100, 'Nama tidak boleh lebih dari 100 karakter']
   },
   
-  // BARU: Lokasi Properti 
+  // Lokasi Properti 
   location: {
     type: String,
     required: [true, 'Lokasi properti wajib diisi (Misal: Bali, Jakarta)'],
@@ -18,8 +18,8 @@ const suiteSchema = new mongoose.Schema({
   type: {
     type: String,
     required: true,
-    // BARU: Tipe Akomodasi ala Airbnb
-    enum: ['Apartment', 'Villa', 'House', 'Hotel', 'Resort', 'Glamping'], 
+    // Tipe Akomodasi 
+    enum: ['Hotel', 'Villa', 'Resort', 'Cottage', 'Apartment'], 
     default: 'Hotel'
   },
   
