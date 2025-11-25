@@ -193,7 +193,7 @@ export default function HotelsPage() {
                                 <Crown size={24} fill="currentColor" />
                             </div>
                             <div>
-                                <h2 className="text-2xl font-bold text-gray-900">Pilihan Editor</h2>
+                                <h2 className="text-2xl font-bold text-gray-900">Best Choices</h2>
                                 <p className="text-gray-500 text-sm">Akomodasi paling eksklusif minggu ini</p>
                             </div>
                         </div>

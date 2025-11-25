@@ -3,9 +3,11 @@ import UnderConstruction from '../components/UnderConstruction';
 
 const Contact = () => {
   return (
-    <div className="container mx-auto p-4 py-8">
-      {/* Kita panggil komponen placeholder di sini */}
-      <UnderConstruction pageName="Halaman Kontak Kami" />
+    <div className="min-h-screen bg-gray-50 pt-20 flex items-center justify-center">
+      <div className="container mx-auto p-4">
+        {/* Komponen Placeholder */}
+        <UnderConstruction pageName="Halaman Kontak Kami" />
+      </div>
     </div>
   );
 };
