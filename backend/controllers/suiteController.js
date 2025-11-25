@@ -1,5 +1,5 @@
-const Suite = require('../models/Suite');
-const { addLog } = require('./logController');
+const Suite = require("../models/Suite");
+const { addLog } = require("./logController");
 
 // @desc    Ambil Semua Data Suite (Untuk Halaman Depan User)
 // @route   GET /api/suites
@@ -22,7 +22,7 @@ const getSuiteById = async (req, res) => {
     if (suite) {
       res.json(suite);
     } else {
-      res.status(404).json({ message: 'Suite tidak ditemukan' });
+      res.status(404).json({ message: "Suite tidak ditemukan" });
     }
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -36,8 +36,8 @@ const createSuite = async (req, res) => {
   try {
     //Ambil 'location' dari input user
     const { name, location, type, price, description, facilities } = req.body;
-    
-    const image = req.file ? `/${req.file.path.replace(/\\/g, "/")}` : ''; 
+
+    const image = req.file ? `/${req.file.path.replace(/\\/g, "/")}` : "";
 
     const suite = new Suite({
       name,
@@ -45,16 +45,16 @@ const createSuite = async (req, res) => {
       type,
       price,
       description,
-      facilities: facilities ? facilities.split(',') : [],
+      facilities: facilities ? facilities.split(",") : [],
       images: [image],
-      status: 'available'
+      status: "available",
     });
 
     const createdSuite = await suite.save();
 
     await addLog(
-      req.user._id, 
-      "CREATE_SUITE", 
+      req.user._id,
+      "CREATE_SUITE",
       `Menambahkan properti baru: ${createdSuite.name}`,
       createdSuite._id
     );
@@ -70,29 +70,29 @@ const createSuite = async (req, res) => {
 // @access  Private/Admin
 const deleteSuite = async (req, res) => {
   try {
-
     const suite = await Suite.findById(req.params.id);
 
     if (suite) {
-
-      const suiteName = suite.name; 
+      const suiteName = suite.name;
 
       await suite.deleteOne();
 
       await addLog(
-        req.user._id, 
-        "DELETE_SUITE", 
+        req.user._id,
+        "DELETE_SUITE",
         `Menghapus properti: ${suiteName}`,
         req.params.id
       );
 
-      res.json({ message: 'Suite berhasil dihapus' });
+      res.json({ message: "Suite berhasil dihapus" });
     } else {
-      res.status(404).json({ message: 'Suite tidak ditemukan' });
+      res.status(404).json({ message: "Suite tidak ditemukan" });
     }
   } catch (error) {
     console.error("Delete Suite Error:", error); // Cek terminal jika masih error
-    res.status(500).json({ message: 'Gagal menghapus Suite: ' + error.message });
+    res
+      .status(500)
+      .json({ message: "Gagal menghapus Suite: " + error.message });
   }
 };
 
@@ -105,14 +105,15 @@ const updateSuite = async (req, res) => {
 
     if (suite) {
       // 1. Ambil data dari body
-      const { name, location, type, price, description, facilities, capacity } = req.body;
-      
+      const { name, location, type, price, description, facilities, capacity } =
+        req.body;
+
       // 2. Cek jika ada file gambar baru yang diupload
       if (req.file) {
         // Jika ada, ganti gambar lama dengan yang baru
         suite.images = [`/${req.file.path.replace(/\\/g, "/")}`];
       }
-      
+
       // 3. Update field-field
       suite.name = name || suite.name;
       suite.location = location || suite.location;
@@ -123,22 +124,29 @@ const updateSuite = async (req, res) => {
 
       // Fasilitas: Perlu parsing karena dikirim sebagai string array
       if (facilities) {
-          // Asumsi fasilitas dikirim sebagai array string (dari FormData di frontend)
-          suite.facilities = Array.isArray(facilities) ? facilities.map(f => f.trim()) : facilities.split(',').map(f => f.trim());
+        // Asumsi fasilitas dikirim sebagai array string (dari FormData di frontend)
+        suite.facilities = Array.isArray(facilities)
+          ? facilities.map((f) => f.trim())
+          : facilities.split(",").map((f) => f.trim());
       } else {
-          // Jika fasilitas dikosongkan
-          suite.facilities = [];
+        // Jika fasilitas dikosongkan
+        suite.facilities = [];
       }
 
       const updatedSuite = await suite.save();
       res.json(updatedSuite);
-
     } else {
-      res.status(404).json({ message: 'Suite tidak ditemukan' });
+      res.status(404).json({ message: "Suite tidak ditemukan" });
     }
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-module.exports = { getSuites, getSuiteById, createSuite, deleteSuite, updateSuite };
+module.exports = {
+  getSuites,
+  getSuiteById,
+  createSuite,
+  deleteSuite,
+  updateSuite,
+};
