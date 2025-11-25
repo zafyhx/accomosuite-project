@@ -1,277 +1,80 @@
-import axios from "axios";
-import { useContext, useEffect, useState } from "react";
-import { Link, Route, Routes, useLocation } from "react-router-dom";
-import Hero from "./components/Hero";
+import { Route, Routes, useLocation } from "react-router-dom";
 import Navbar from "./components/Navbar";
-import { AuthContext } from "./context/AuthContext";
+import ProtectedRoute from "./components/ProtectedRoute";
+
+// --- HALAMAN UTAMA ---
+import Home from "./pages/Home"; // <--- Import dari file baru
+
+// --- AUTH ---
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 
-// --- KOMPONEN LAYOUT & PROTEKSI ---
-import ProtectedRoute from "./components/ProtectedRoute";
+// --- ADMIN LAYOUT & PAGES ---
 import AdminLayout from "./layouts/AdminLayout";
-import AdminBookings from "./pages/admin/AdminBookings";
 import DashboardHome from "./pages/admin/DashboardHome";
 import ManageSuites from "./pages/admin/ManageSuite";
 import SuiteForm from "./pages/admin/SuiteForm";
+import AdminBookings from "./pages/admin/AdminBookings";
 import ManageUsers from "./pages/admin/ManageUsers";
 import ActivityLogs from './pages/admin/ActivityLogs';
+import ManageBlogs from './pages/admin/ManageBlogs';
 
-//--- HALAMAN USER ---//
+// --- USER PAGES ---
 import BookingSuccess from "./pages/BookingSuccess";
 import MyBookings from "./pages/MyBookings";
 import SuiteDetail from "./pages/SuiteDetail";
 import CheckIn from './pages/CheckIn';
 import UserProfile from './pages/UserProfile';
 
-//--- HALAMAN BLOG ---//
+// --- BLOG & OTHERS ---
 import Blog from './pages/Blog';
 import BlogDetail from './pages/BlogDetail';
-import ManageBlogs from './pages/admin/ManageBlogs';
-
-//--- HALAMAN PLACEHOLDER ---//
 import Contact from './pages/Contact'; 
 import Hotel from './pages/Hotel';     
 
-import {
-  CalendarDays,
-  LayoutDashboard,
-  Loader2,
-  MapPin,
-  Settings,
-  ShieldCheck,
-  Star
-} from "lucide-react";
-
-// --- 1. KOMPONEN HOME (DASHBOARD) ---
-const Home = () => {
-  const { user } = useContext(AuthContext);
-  const [suites, setSuites] = useState([]); 
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchSuites = async () => {
-      try {
-        const { data } = await axios.get("/api/suites");
-        setSuites(data); 
-      } catch (error) {
-        console.error("Gagal ambil data", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchSuites();
-  }, []);
-  
-  return (
-    <div className="min-h-screen bg-gray-50 pb-20">
-      <Hero />
-
-      <div className="container mx-auto px-4 md:px-10 -mt-10 md:-mt-12 relative z-20">
-        
-        {/* === DASHBOARD CARD (User Login) === */}
-        {user && (
-          <div className="bg-white rounded-2xl shadow-xl p-5 md:p-6 mb-10 border border-gray-100">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-5 gap-4">
-              <div>
-                <h2 className="text-lg md:text-xl font-bold text-secondary flex flex-wrap items-center gap-2">
-                  Halo, {user.name}
-                  {user.role === 'admin' && (
-                    <span className="bg-primary/20 text-primary text-[10px] px-2 py-1 rounded-full flex items-center gap-1 uppercase tracking-wider font-bold">
-                      <ShieldCheck size={12} /> Admin
-                    </span>
-                  )}
-                </h2>
-                <p className="text-xs md:text-sm text-gray-500 mt-1">Mau menginap di mana hari ini?</p>
-              </div>
-            </div>
-
-            {/* Menu Cepat */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
-              {user.role === 'admin' ? (
-                <>
-                  <Link to="/admin"> 
-                    <div className="p-4 bg-primary/10 rounded-xl border border-primary/20 cursor-pointer active:scale-95 hover:shadow-md transition group flex items-center gap-3 h-full">
-                      <div className="bg-primary w-10 h-10 rounded-lg flex items-center justify-center text-white shadow-primary/30 group-hover:scale-105 transition">
-                        <LayoutDashboard size={18} />
-                      </div>
-                      <div>
-                        <h3 className="font-bold text-gray-800 text-sm md:text-base">Dashboard</h3>
-                        <p className="text-xs text-gray-500">Panel Admin</p>
-                      </div>
-                    </div>
-                  </Link>
-
-                  <Link to="/admin/bookings">
-                    <div className="p-4 bg-indigo-50 rounded-xl border border-indigo-100 cursor-pointer active:scale-95 hover:shadow-md transition group flex items-center gap-3 h-full">
-                      <div className="bg-indigo-500 w-10 h-10 rounded-lg flex items-center justify-center text-white shadow-indigo-500/20 group-hover:scale-105 transition">
-                        <CalendarDays size={18} />
-                      </div>
-                      <div>
-                        <h3 className="font-bold text-gray-800 text-sm md:text-base">Reservasi</h3>
-                        <p className="text-xs text-gray-500">Cek Booking</p>
-                      </div>
-                    </div>
-                  </Link>
-                </>
-              ) : (
-                <Link to="/my-bookings"> 
-                    <div className="p-4 bg-primary/10 rounded-xl border border-primary/20 cursor-pointer active:scale-95 hover:shadow-md transition group flex items-center gap-3 h-full">
-                        <div className="bg-primary w-10 h-10 rounded-lg flex items-center justify-center text-white shadow-primary/30 group-hover:scale-105 transition">
-                         <CalendarDays size={18} />
-                        </div>
-                        <div>
-                         <h3 className="font-bold text-gray-800 text-sm md:text-base">Booking Saya</h3>
-                         <p className="text-xs text-gray-500">Riwayat Pesanan</p>
-                        </div>
-                     </div>
-                </Link>
-              )}
-            <Link to="/profile">
-              <div className="p-4 bg-gray-50 rounded-xl border border-gray-200 cursor-pointer active:scale-95 hover:shadow-md transition group flex items-center gap-3 h-full">
-                <div className="bg-gray-600 w-10 h-10 rounded-lg flex items-center justify-center text-white shadow-gray-500/20 group-hover:scale-105 transition">
-                  <Settings size={18} />
-                </div>
-                <div>
-                  <h3 className="font-bold text-gray-800 text-sm md:text-base">Pengaturan</h3>
-                  <p className="text-xs text-gray-500">Profil & Keamanan</p>
-                </div>
-              </div>
-              </Link>
-            </div>
-          </div>
-        )}
-
-        {/* === DAFTAR PROPERTI (REAL DATA) === */}
-        <div className={`flex justify-between items-end mb-6 ${!user ? 'mt-8' : ''}`}>
-          <div>
-            <h2 className="text-xl md:text-2xl font-bold text-secondary">Rekomendasi Akomodasi</h2>
-            <p className="text-sm text-gray-500 mt-1">Temukan tempat menginap terbaik sesuai gaya liburanmu</p>
-          </div>
-        </div>
-
-        {loading ? (
-          <div className="flex justify-center py-20">
-            <Loader2 size={40} className="animate-spin text-primary" />
-          </div>
-        ) : suites.length === 0 ? (
-          <div className="text-center py-20 bg-white rounded-xl border border-dashed border-gray-300">
-            <p className="text-gray-500">Belum ada properti yang tersedia saat ini.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-             {suites.map((suite) => (
-               <div key={suite._id} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition duration-300 group cursor-pointer border border-gray-100 flex flex-col h-full">
-                 
-                 {/* Gambar */}
-                 <div className="h-48 bg-gray-200 relative overflow-hidden">
-                    <img 
-                      src={suite.images[0] ? `http://localhost:5000${suite.images[0]}` : "https://via.placeholder.com/400x300?text=No+Image"} 
-                      alt={suite.name}
-                      className="w-full h-full object-cover group-hover:scale-110 transition duration-700"
-                    />
-                    <div className="absolute top-3 left-3 bg-black/50 backdrop-blur-md text-white text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wider">
-                      {suite.type}
-                    </div>
-                    <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm text-secondary text-[10px] font-bold px-2 py-1 rounded-full shadow-sm flex items-center gap-1">
-                      <Star size={10} className="text-orange-400 fill-orange-400" /> 4.8
-                    </div>
-                 </div>
-
-                 {/* Konten */}
-                 <div className="p-4 flex flex-col flex-grow justify-between">
-                    <div>
-                      <h3 className="text-base md:text-lg font-bold text-secondary group-hover:text-primary transition line-clamp-1">
-                          {suite.name}
-                      </h3>
-                      <div className="flex items-center gap-1 text-gray-400 text-xs mt-1">
-                          <MapPin size={12} />
-                          <span>{suite.location || "Lokasi belum diatur"}</span>
-                      </div>
-                    </div>
-                    
-                    <div className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between">
-                      <div>
-                          <span className="text-gray-400 text-[10px] uppercase tracking-wide">Mulai dari</span>
-                          <div className="text-primary font-bold text-sm md:text-base">
-                            Rp {suite.price.toLocaleString()}
-                          </div>
-                      </div>
-                      
-                      <Link 
-                        to={`/suites/${suite._id}`}
-                        className="bg-secondary active:scale-95 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-primary transition"
-                      >
-                          Lihat Detail
-                      </Link>
-                    </div>
-                 </div>
-               </div>
-             ))}
-          </div>
-        )}
-
-      </div>
-    </div>
-  );
-};
-
-// --- 2. APP UTAMA ---
 function App() {
   const location = useLocation();
+  // Cek apakah user sedang di rute admin (untuk menyembunyikan Navbar User)
   const isAdminRoute = location.pathname.startsWith('/admin');
   
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
-      {/* Navbar hanya muncul jika BUKAN halaman admin */}
+      
+      {/* Navbar muncul di semua halaman KECUALI Admin Panel */}
       {!isAdminRoute && <Navbar />} 
       
       <Routes>
-        {/* Rute User Publik */}
+        {/* === PUBLIC ROUTES === */}
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} /> 
         
-        {/* Rute User yang Dilindungi */}
+        {/* === USER PROTECTED ROUTES === */}
         <Route path="/my-bookings" element={<ProtectedRoute><MyBookings /></ProtectedRoute>} />
         <Route path="/check-in/:id" element={<ProtectedRoute><CheckIn /></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
 
-        {/* Rute Detail Properti (Publik) */}
+        {/* === PUBLIC DETAILS === */}
         <Route path="/suites/:id" element={<SuiteDetail />} />
         <Route path="/booking-success" element={<BookingSuccess />} />
         
-        {/* Route Blog Public */}
+        {/* === BLOG === */}
         <Route path="/blog" element={<Blog />} />
         <Route path="/blog/:id" element={<BlogDetail />} />
 
-        {/* Rute PlaceHolder */}
-        <Route path="/hotel" element={<Hotel />} />  
-        <Route path="/contact" element={<Contact />} />  
+        {/* === PLACEHOLDER PAGES === */}
+        <Route path="/hotel" element={<Hotel />} />   
+        <Route path="/contact" element={<Contact />} />   
 
-        {/* ============================================== */}
-        {/*               RUTE ADMIN PANEL                 */}
-        {/* ============================================== */}
+        {/* === ADMIN PANEL ROUTES (Role: Admin Only) === */}
         <Route path="/admin" element={<ProtectedRoute adminOnly={true}><AdminLayout /></ProtectedRoute>}>
-          {/* /admin (index) -> Dashboard Home */}
           <Route index element={<DashboardHome />} />
-          
-          {/* /admin/suites */}
           <Route path="suites" element={<ManageSuites />} />
           <Route path="suites/new" element={<SuiteForm />} />
           <Route path="suites/edit/:id" element={<SuiteForm />} />
-          
-          {/* /admin/bookings */}
           <Route path="bookings" element={<AdminBookings />} />
-          
-          {/* /admin/blogs (PERBAIKAN DISINI) */}
           <Route path="blogs" element={<ManageBlogs />} />
-          
-          {/* /admin/logs */}
           <Route path="logs" element={<ActivityLogs />} />
-
-          {/* /admin/users */}
           <Route path="users" element={<ManageUsers />} />
         </Route>
         
