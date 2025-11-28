@@ -3,11 +3,12 @@ const dotenv = require("dotenv");
 const cors = require("cors");
 const path = require("path");
 const connectDB = require("./config/db");
+
+// Import Routes
 const bookingRoutes = require("./routes/bookingRoutes");
 const blogRoutes = require("./routes/blogRoutes");
 const authRoutes = require("./routes/authRoutes");
 const suiteRoutes = require("./routes/suiteRoutes");
-const dirname = path.resolve();
 const userRoutes = require("./routes/userRoutes");
 const logRoutes = require("./routes/logRoutes");
 
@@ -20,11 +21,15 @@ connectDB();
 // Inisialisasi App
 const app = express();
 
-// Middleware (Agar bisa baca JSON dari Frontend)
+// Middleware agar backend bisa baca JSON dari Frontend
+app.use(express.json()); 
+
+// Middleware CORS
 app.use(cors({
   origin: [
     "http://localhost:5173",            
-    "https://accomosuite-project.vercel.app",   
+    "https://accomosuite.vercel.app", 
+    "https://accomosuite-project.vercel.app" // Jaga-jaga variasi nama
   ],
   credentials: true
 }));
@@ -32,24 +37,21 @@ app.use(cors({
 // Gunakan Route Auth
 app.use("/api/auth", authRoutes);
 
-// Gunakan Route Suite
+// Gunakan Route Suite & Booking
 app.use("/api/suites", suiteRoutes);
 app.use("/api/bookings", bookingRoutes);
 
 // Gunakan Route Blog
 app.use("/api/blogs", blogRoutes);
 
-// Agar url seperti http://localhost:5000/uploads/gambar.jpg bisa diakses
-app.use("/uploads", express.static(path.join(dirname, "/uploads")));
-
-// Folder untuk gambar yang diupload
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-
 // Gunakan Route Users
 app.use("/api/users", userRoutes);
 
 // Gunakan Route Logs
 app.use("/api/logs", logRoutes);
+
+// Folder untuk gambar yang diupload (Static Folder)
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Route Percobaan (Test Server)
 app.get("/", (req, res) => {
