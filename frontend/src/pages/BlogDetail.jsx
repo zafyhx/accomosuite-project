@@ -38,7 +38,7 @@ const BlogDetail = () => {
       : blog.imageUrl || "https://via.placeholder.com/800x400";
 
   return (
-    <div className="bg-gray-50 min-h-screen py-12 px-4 sm:px-6 lg:px-8">
+    <div className="bg-gray-50 min-h-screen py-12 px-4 sm:px-6 lg:px-8 pt-28">
       <div className="max-w-4xl mx-auto bg-white rounded-3xl shadow-xl overflow-hidden">
         {/* Header Image */}
         <div className="relative h-64 md:h-96 w-full">
