@@ -134,7 +134,7 @@ const Home = () => {
       <Hero />
 
       <div className="container mx-auto px-4 md:px-10 -mt-10 md:-mt-12 relative z-20">
-        {/* 2. DASHBOARD CARD (VERSI LAMA YANG ANDA SUKA) */}
+        {/* 2. DASHBOARD CARD */}
         {user && (
           <div className="bg-white rounded-2xl shadow-xl p-5 md:p-6 mb-20 border border-gray-100 animate-fade-in-up">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-5 gap-4">

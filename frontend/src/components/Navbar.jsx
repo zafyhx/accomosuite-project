@@ -1,143 +1,167 @@
-import { useContext, useState, useEffect } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { LogOut, Menu, User } from "lucide-react";
+import { useContext, useEffect, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import LogoImage from "../assets/Logo.png";
 import { AuthContext } from "../context/AuthContext";
-import { LogOut, User, Menu } from "lucide-react";
-// Pastikan path ini benar
-import LogoImage from '../assets/Logo.png'; 
 
 const Navbar = () => {
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
-  const location = useLocation(); 
-  
+  const location = useLocation();
+
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Deteksi Scroll untuk ubah background
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
-    };
+    const handleScroll = () => setIsScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Logika Warna: Transparan di Home (sebelum scroll), Putih di halaman lain
   const isHome = location.pathname === "/";
   const transparentMode = isHome && !isScrolled;
-  
-  const navBg = transparentMode ? "bg-transparent" : "bg-white shadow-md";
+
+  const navBg = transparentMode
+    ? "bg-transparent"
+    : "bg-white/50 backdrop-blur-md shadow-sm";
   const textColor = transparentMode ? "text-white" : "text-secondary";
-  const logoColor = transparentMode ? "text-white" : "text-primary";
-  const lineColor = transparentMode ? "bg-white" : "bg-primary"; 
-  // Variabel ini tidak perlu jika ukurannya sama
-  const logoSizeClass = transparentMode ? "h-12" : "h-12" 
+  const lineColor = transparentMode ? "bg-white" : "bg-primary";
 
   const handleLogout = () => {
     logout();
     navigate("/login");
   };
 
-  // --- SUB-COMPONENT: Link Navigasi dengan Garis Bawah (SUDAH DIPERBAIKI) ---
   const NavLink = ({ to, label }) => {
-    const isActive = location.pathname === to; // Cek apakah kita sedang di halaman ini?
-    
+    const isActive = location.pathname === to;
     return (
-      <Link to={to} className={`relative group ${textColor} font-medium transition-colors hover:text-primary`}>
+      <Link
+        to={to}
+        className={`relative group ${textColor} font-bold text-base transition-colors hover:text-primary flex items-center`}
+      >
         {label}
-        {/* Garis Bawah Ajaib */}
-        <span className={`absolute -bottom-2 left-0 h-[2px] rounded-full transition-all duration-300 
-          ${lineColor} 
-          ${isActive ? "w-full" : "w-0 group-hover:w-full"} 
-        `}></span>
+        <span
+          className={`absolute -bottom-2 left-0 h-[3px] rounded-full transition-all duration-300 
+          ${lineColor} ${isActive ? "w-full" : "w-0 group-hover:w-full"}`}
+        ></span>
       </Link>
     );
   };
-  
+
   return (
-    <nav className={`fixed w-full z-50 transition-all duration-300 ${navBg}`}>
-      <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-        
-        {/* 1. LOGO */}
-        <Link to="/" className="flex items-center gap-2"> 
-          
-          <img 
-              src={LogoImage} 
-              alt="Accomosuite Logo" 
-              // Menggunakan h-12 (48px) yang dinamis/atau fixed
-              className={`${logoSizeClass} w-auto ${logoColor}`} 
+    <nav
+      className={`fixed top-0 w-full z-50 transition-all duration-300 ${navBg}`}
+    >
+      {/* CONTAINER */}
+      <div className="container mx-auto px-8 py-5 flex items-center justify-between relative">
+        {/* 1. LOGO & BRAND */}
+        <Link to="/" className="flex items-center gap-3 group z-20 relative">
+          <img
+            src={LogoImage}
+            alt="Accomosuite Logo"
+            className="h-11 w-auto object-contain transition-transform group-hover:scale-105"
           />
-      
-          {/* Teks Branding (Menggunakan textColor agar Putih saat transparan) */}
-          <span className={`text-xl font-bold ${textColor}`}>
-              Accomosuite
+          {/* Font */}
+          <span
+            className={`text-2xl font-bold ${textColor} tracking-tight pb-1`}
+          >
+            Accomosuite
           </span>
         </Link>
 
-        {/* 2. MENU TENGAH (Desktop) */}
-        <div className="hidden md:flex gap-8">
+        {/* 2. MENU TENGAH */}
+        <div className="hidden md:flex gap-12 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
           <NavLink to="/" label="Home" />
           <NavLink to="/hotel" label="Hotels" />
           <NavLink to="/blog" label="Blogs" />
           <NavLink to="/contact" label="Contacts" />
         </div>
 
-        {/* 3. MENU KANAN (User/Login) */}
-        <div className="flex items-center gap-4">
+        {/* 3. USER/LOGIN */}
+        <div className="flex items-center gap-5 z-20 relative">
           {user ? (
-            <div className={`flex items-center gap-3 ${textColor}`}>
-              <div className="hidden md:block text-right">
-                <p className="text-sm font-bold">{user.name}</p>
-                <p className="text-xs opacity-80 uppercase">{user.role}</p>
+            <div className={`flex items-center gap-4 ${textColor}`}>
+              <div className="hidden md:block text-right leading-tight">
+                <p className="text-base font-bold">{user.name}</p>
+                <p className="text-xs opacity-80 uppercase font-semibold tracking-wider">
+                  {user.role}
+                </p>
               </div>
-              
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center border ${transparentMode ? 'border-white/50 bg-white/20' : 'border-gray-200 bg-gray-100'}`}>
+
+              <div
+                className={`w-10 h-10 rounded-full flex items-center justify-center border ${
+                  transparentMode
+                    ? "border-white/50 bg-white/10"
+                    : "border-gray-200 bg-gray-50"
+                }`}
+              >
                 <User size={20} />
               </div>
 
-              <button 
+              <button
                 onClick={handleLogout}
-                className="ml-2 text-red-500 hover:text-red-400 transition"
+                className="ml-1 text-red-500 hover:text-red-600 hover:bg-red-50 p-2 rounded-full transition"
                 title="Logout"
               >
                 <LogOut size={20} />
               </button>
             </div>
           ) : (
-            <Link 
-              to="/login" 
-              className="bg-primary hover:bg-primary-dark text-white px-6 py-2 rounded-full font-medium transition shadow-lg shadow-primary/30"
+            <Link
+              to="/login"
+              className="bg-primary hover:bg-primary-dark text-white px-7 py-3 rounded-full font-bold text-base transition shadow-lg shadow-primary/30 active:scale-95"
             >
               Login
             </Link>
           )}
 
-          {/* Tombol Hamburger (Mobile) */}
-          <button 
-            className={`md:hidden ${textColor}`}
+          {/* Hamburger Mobile */}
+          <button
+            className={`md:hidden ${textColor} p-1`}
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           >
-            <Menu size={24} />
+            <Menu size={28} />
           </button>
         </div>
-      </div> {/* Penutup div container */}
+      </div>
 
       {/* MOBILE MENU */}
       {isMobileMenuOpen && (
-        <div className="md:hidden bg-white absolute w-full shadow-lg border-t animate-fade-in-down">
-          <div className="flex flex-col p-4 gap-4 text-secondary font-medium">
-            
-            <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-primary">Home</Link>
-            <Link to="/hotel" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-primary">Hotels</Link>
-            <Link to="/blog" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-primary">Blogs</Link>
-            <Link to="/contact" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-primary">Contacts</Link>
-            
+        <div className="md:hidden bg-white absolute w-full shadow-xl border-t animate-fade-in-down">
+          <div className="flex flex-col p-6 gap-6 text-secondary font-bold text-center text-lg">
+            <Link
+              to="/"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="hover:text-primary py-2 border-b border-gray-50"
+            >
+              Home
+            </Link>
+            <Link
+              to="/hotel"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="hover:text-primary py-2 border-b border-gray-50"
+            >
+              Hotels
+            </Link>
+            <Link
+              to="/blog"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="hover:text-primary py-2 border-b border-gray-50"
+            >
+              Blogs
+            </Link>
+            <Link
+              to="/contact"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="hover:text-primary py-2"
+            >
+              Contacts
+            </Link>
           </div>
         </div>
-      )} {/* Penutup conditional Mobile Menu */}
-
-    </nav> // <-- PENUTUP NAV BARU DI SINI
-  ); // <-- PENUTUP RETURN DI SINI
-}; // <-- PENUTUP KOMPONEN DI SINI
+      )}
+    </nav>
+  );
+};
 
 export default Navbar;
