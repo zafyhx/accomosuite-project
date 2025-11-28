@@ -21,8 +21,13 @@ connectDB();
 const app = express();
 
 // Middleware (Agar bisa baca JSON dari Frontend)
-app.use(cors());
-app.use(express.json());
+app.use(cors({
+  origin: [
+    "http://localhost:5173",            
+    "https://accomosuite-project.vercel.app",   
+  ],
+  credentials: true
+}));
 
 // Gunakan Route Auth
 app.use("/api/auth", authRoutes);
