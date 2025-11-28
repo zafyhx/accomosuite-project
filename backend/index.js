@@ -1,15 +1,15 @@
-const express = require('express');
-const dotenv = require('dotenv');
-const cors = require('cors');
-const path = require('path');
-const connectDB = require('./config/db');
-const bookingRoutes = require('./routes/bookingRoutes');
-const blogRoutes = require('./routes/blogRoutes');
-const authRoutes = require('./routes/authRoutes');
-const suiteRoutes = require('./routes/suiteRoutes');
+const express = require("express");
+const dotenv = require("dotenv");
+const cors = require("cors");
+const path = require("path");
+const connectDB = require("./config/db");
+const bookingRoutes = require("./routes/bookingRoutes");
+const blogRoutes = require("./routes/blogRoutes");
+const authRoutes = require("./routes/authRoutes");
+const suiteRoutes = require("./routes/suiteRoutes");
 const dirname = path.resolve();
-const userRoutes = require('./routes/userRoutes'); 
-const logRoutes = require('./routes/logRoutes');
+const userRoutes = require("./routes/userRoutes");
+const logRoutes = require("./routes/logRoutes");
 
 // Load Config dari .env
 dotenv.config();
@@ -25,30 +25,30 @@ app.use(cors());
 app.use(express.json());
 
 // Gunakan Route Auth
-app.use('/api/auth', authRoutes);
+app.use("/api/auth", authRoutes);
 
 // Gunakan Route Suite
-app.use('/api/suites', suiteRoutes);
-app.use('/api/bookings', bookingRoutes);
+app.use("/api/suites", suiteRoutes);
+app.use("/api/bookings", bookingRoutes);
 
 // Gunakan Route Blog
-app.use('/api/blogs', blogRoutes);
+app.use("/api/blogs", blogRoutes);
 
 // Agar url seperti http://localhost:5000/uploads/gambar.jpg bisa diakses
-app.use('/uploads', express.static(path.join(dirname, '/uploads')));
+app.use("/uploads", express.static(path.join(dirname, "/uploads")));
 
 // Folder untuk gambar yang diupload
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Gunakan Route Users
-app.use('/api/users', userRoutes); 
+app.use("/api/users", userRoutes);
 
 // Gunakan Route Logs
-app.use('/api/logs', logRoutes); 
+app.use("/api/logs", logRoutes);
 
 // Route Percobaan (Test Server)
-app.get('/', (req, res) => {
-  res.send('API Accomosuite Berjalan Lancar! 🚀');
+app.get("/", (req, res) => {
+  res.send("API Accomosuite Berjalan Lancar! 🚀");
 });
 
 // Jalankan Server

@@ -1,7 +1,13 @@
-import { useState, useEffect, useContext } from "react";
 import axios from "axios";
+import {
+  CalendarDays,
+  CheckCircle,
+  Clock,
+  Loader2,
+  XCircle,
+} from "lucide-react";
+import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../../context/AuthContext";
-import { CalendarDays, CheckCircle, XCircle, Clock, Loader2 } from "lucide-react";
 
 const Bookings = () => {
   const [bookings, setBookings] = useState([]);
@@ -53,11 +59,23 @@ const Bookings = () => {
   const renderStatus = (status) => {
     switch (status) {
       case "confirmed":
-        return <span className="bg-green-100 text-green-600 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 w-fit"><CheckCircle size={14}/> Confirmed</span>;
+        return (
+          <span className="bg-green-100 text-green-600 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 w-fit">
+            <CheckCircle size={14} /> Confirmed
+          </span>
+        );
       case "cancelled":
-        return <span className="bg-red-100 text-red-600 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 w-fit"><XCircle size={14}/> Cancelled</span>;
+        return (
+          <span className="bg-red-100 text-red-600 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 w-fit">
+            <XCircle size={14} /> Cancelled
+          </span>
+        );
       default:
-        return <span className="bg-yellow-100 text-yellow-600 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 w-fit"><Clock size={14}/> Pending</span>;
+        return (
+          <span className="bg-yellow-100 text-yellow-600 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 w-fit">
+            <Clock size={14} /> Pending
+          </span>
+        );
     }
   };
 
@@ -65,8 +83,12 @@ const Bookings = () => {
     <div className="container mx-auto px-6 pt-24 pb-10">
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-secondary">Daftar Reservasi</h1>
-          <p className="text-gray-500 text-sm">Pantau semua pesanan masuk di sini.</p>
+          <h1 className="text-3xl font-bold text-secondary">
+            Daftar Reservasi
+          </h1>
+          <p className="text-gray-500 text-sm">
+            Pantau semua pesanan masuk di sini.
+          </p>
         </div>
       </div>
 
@@ -84,30 +106,41 @@ const Bookings = () => {
           </thead>
           <tbody className="text-gray-600 text-sm font-medium">
             {bookings.map((booking) => (
-              <tr key={booking._id} className="border-b border-gray-100 hover:bg-gray-50 transition">
+              <tr
+                key={booking._id}
+                className="border-b border-gray-100 hover:bg-gray-50 transition"
+              >
                 <td className="py-4 px-6 text-xs text-gray-400 font-mono">
                   #{booking._id.slice(-6).toUpperCase()}
                 </td>
                 <td className="py-4 px-6">
-                  <div className="text-gray-800 font-bold">{booking.user?.name || "User Terhapus"}</div>
-                  <div className="text-xs text-gray-400">{booking.user?.email}</div>
+                  <div className="text-gray-800 font-bold">
+                    {booking.user?.name || "User Terhapus"}
+                  </div>
+                  <div className="text-xs text-gray-400">
+                    {booking.user?.email}
+                  </div>
                 </td>
                 <td className="py-4 px-6">
                   {booking.suite?.name || "Properti Terhapus"}
                 </td>
                 <td className="py-4 px-6">
                   <div className="flex flex-col gap-1 text-xs">
-                    <span className="flex items-center gap-1"><CalendarDays size={12}/> {new Date(booking.checkInDate).toLocaleDateString()}</span>
+                    <span className="flex items-center gap-1">
+                      <CalendarDays size={12} />{" "}
+                      {new Date(booking.checkInDate).toLocaleDateString()}
+                    </span>
                     <span className="text-gray-400">sampai</span>
-                    <span className="flex items-center gap-1"><CalendarDays size={12}/> {new Date(booking.checkOutDate).toLocaleDateString()}</span>
+                    <span className="flex items-center gap-1">
+                      <CalendarDays size={12} />{" "}
+                      {new Date(booking.checkOutDate).toLocaleDateString()}
+                    </span>
                   </div>
                 </td>
                 <td className="py-4 px-6 font-bold text-primary">
                   Rp {booking.totalPrice.toLocaleString()}
                 </td>
-                <td className="py-4 px-6">
-                  {renderStatus(booking.status)}
-                </td>
+                <td className="py-4 px-6">{renderStatus(booking.status)}</td>
               </tr>
             ))}
           </tbody>

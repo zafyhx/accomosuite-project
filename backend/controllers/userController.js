@@ -1,6 +1,6 @@
-const generateToken = require('../utils/generateToken');
-const User = require('../models/User');
-const { addLog } = require('./logController');
+const generateToken = require("../utils/generateToken");
+const User = require("../models/User");
+const { addLog } = require("./logController");
 
 // @desc    Get all users
 // @route   GET /api/users
@@ -8,10 +8,12 @@ const { addLog } = require('./logController');
 const getAllUsers = async (req, res) => {
   try {
     // Ambil semua user tapi jangan kirim passwordnya
-    const users = await User.find({}).select('-password').sort({ createdAt: -1 });
+    const users = await User.find({})
+      .select("-password")
+      .sort({ createdAt: -1 });
     res.json(users);
   } catch (error) {
-    res.status(500).json({ message: 'Gagal mengambil data user' });
+    res.status(500).json({ message: "Gagal mengambil data user" });
   }
 };
 
@@ -24,13 +26,17 @@ const deleteUser = async (req, res) => {
 
     if (user) {
       await user.deleteOne();
-      await addLog(req.user._id, "DELETE_USER", `Menghapus pengguna: ${userName}`);
-      res.json({ message: 'User berhasil dihapus' });
+      await addLog(
+        req.user._id,
+        "DELETE_USER",
+        `Menghapus pengguna: ${userName}`
+      );
+      res.json({ message: "User berhasil dihapus" });
     } else {
-      res.status(404).json({ message: 'User tidak ditemukan' });
+      res.status(404).json({ message: "User tidak ditemukan" });
     }
   } catch (error) {
-    res.status(500).json({ message: 'Gagal menghapus user' });
+    res.status(500).json({ message: "Gagal menghapus user" });
   }
 };
 
@@ -43,22 +49,22 @@ const updateUserRole = async (req, res) => {
     const user = await User.findById(req.params.id);
 
     if (!user) {
-      return res.status(404).json({ message: 'User tidak ditemukan' });
+      return res.status(404).json({ message: "User tidak ditemukan" });
     }
 
     // 2. Tentukan role baru (Toggle)
-    const newRole = user.role === 'admin' ? 'user' : 'admin';
+    const newRole = user.role === "admin" ? "user" : "admin";
 
     // 3. Update langsung di Database (Bypass validasi password/middleware)
     const updatedUser = await User.findByIdAndUpdate(
       req.params.id,
       { role: newRole },
       { new: true } // Opsi ini agar yang dikembalikan adalah data setelah update
-    ).select('-password'); // Jangan kirim balik password
+    ).select("-password"); // Jangan kirim balik password
 
     await addLog(
-      req.user._id, 
-      "UPDATE_ROLE", 
+      req.user._id,
+      "UPDATE_ROLE",
       `Mengubah role "${updatedUser.name}" menjadi ${updatedUser.role}`
     );
 
@@ -68,10 +74,11 @@ const updateUserRole = async (req, res) => {
       email: updatedUser.email,
       role: updatedUser.role,
     });
-
   } catch (error) {
     console.error("Backend Error:", error.message); // Cek terminal backend untuk detail
-    res.status(500).json({ message: 'Gagal update role user: ' + error.message });
+    res
+      .status(500)
+      .json({ message: "Gagal update role user: " + error.message });
   }
 };
 
@@ -80,11 +87,10 @@ const updateUserRole = async (req, res) => {
 // @access  Private
 const updateUserProfile = async (req, res) => {
   try {
-
-    const user = await User.findById(req.user._id).select('+password');
+    const user = await User.findById(req.user._id).select("+password");
 
     if (!user) {
-      return res.status(404).json({ message: 'User tidak ditemukan' });
+      return res.status(404).json({ message: "User tidak ditemukan" });
     }
 
     // Update fields
@@ -96,7 +102,7 @@ const updateUserProfile = async (req, res) => {
       user.password = req.body.password; // Middleware akan hash otomatis
     }
 
-    // Simpan perubahan 
+    // Simpan perubahan
     const updatedUser = await user.save();
 
     // Generate token baru
@@ -109,12 +115,11 @@ const updateUserProfile = async (req, res) => {
       role: updatedUser.role,
       token: token,
     });
-
   } catch (error) {
     console.error("❌ Update Profile Error:", error);
-    res.status(500).json({ 
-      message: 'Gagal update profil', 
-      error: error.message 
+    res.status(500).json({
+      message: "Gagal update profil",
+      error: error.message,
     });
   }
 };

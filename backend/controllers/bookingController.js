@@ -244,8 +244,8 @@ const getDashboardStats = async (req, res) => {
       recentCancellations,
       charts: {
         monthlyRevenue,
-        monthlyReservations, // Data Baru
-        monthlyCancellations, // Data Baru
+        monthlyReservations, 
+        monthlyCancellations, 
         suiteDistribution
       }
     });

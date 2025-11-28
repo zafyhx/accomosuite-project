@@ -1,19 +1,32 @@
-import axios from 'axios';
-import { AlertCircle, Calendar, FileText, Image, Loader2, Plus, Trash2, X, Edit } from 'lucide-react'; // Tambah import Edit
-import { useEffect, useState, useContext } from 'react';
-import { AuthContext } from '../../context/AuthContext';
+import axios from "axios";
+import {
+  AlertCircle,
+  Calendar,
+  Edit,
+  FileText,
+  Image,
+  Loader2,
+  Plus,
+  Trash2,
+  X,
+} from "lucide-react"; // Tambah import Edit
+import { useContext, useEffect, useState } from "react";
+import { AuthContext } from "../../context/AuthContext";
 
 const ManageBlogs = () => {
   const { user } = useContext(AuthContext);
   const [blogs, setBlogs] = useState([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
-  
+
   // State untuk Edit Mode
   const [isEditMode, setIsEditMode] = useState(false);
   const [editId, setEditId] = useState(null);
 
   const [formData, setFormData] = useState({
-    title: '', category: 'General', content: '', image: null
+    title: "",
+    category: "General",
+    content: "",
+    image: null,
   });
   const [preview, setPreview] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -26,15 +39,15 @@ const ManageBlogs = () => {
   const getAuthToken = () => {
     // 1. Prioritas dari Context
     if (user && user.token) return user.token;
-    
+
     // 2. Backup dari localStorage
     try {
-      const userInfo = localStorage.getItem('userInfo');
+      const userInfo = localStorage.getItem("userInfo");
       if (!userInfo) return null;
       const parsed = JSON.parse(userInfo);
       return parsed.token || parsed.accessToken || parsed.authToken;
     } catch (error) {
-      console.error('Error parsing userInfo:', error);
+      console.error("Error parsing userInfo:", error);
       return null;
     }
   };
@@ -44,7 +57,9 @@ const ManageBlogs = () => {
     if (!imagePath) return null;
     // Jika path sudah lengkap (http...), gunakan langsung. Jika relatif, tambahkan host backend.
     // Sesuaikan 'http://localhost:5000' dengan URL backend yang sebenarnya
-    return imagePath.startsWith('http') ? imagePath : `http://localhost:5000${imagePath}`;
+    return imagePath.startsWith("http")
+      ? imagePath
+      : `http://localhost:5000${imagePath}`;
   };
 
   // --- Main Logic ---
@@ -54,17 +69,19 @@ const ManageBlogs = () => {
     try {
       setFetchLoading(true);
       setError(null);
-      const { data } = await axios.get('/api/blogs');
+      const { data } = await axios.get("/api/blogs");
       setBlogs(data);
     } catch (error) {
-      console.error('Error fetching blogs:', error);
-      setError('Gagal memuat artikel');
+      console.error("Error fetching blogs:", error);
+      setError("Gagal memuat artikel");
     } finally {
       setFetchLoading(false);
     }
   };
 
-  useEffect(() => { fetchBlogs(); }, []);
+  useEffect(() => {
+    fetchBlogs();
+  }, []);
 
   // Handle Input
   const handleChange = (e) => {
@@ -89,7 +106,7 @@ const ManageBlogs = () => {
       title: blog.title,
       category: blog.category,
       content: blog.content,
-      image: null // Reset file input karena kita pakai gambar lama by default
+      image: null, // Reset file input karena kita pakai gambar lama by default
     });
     // Set preview dari gambar yang sudah ada di server
     setPreview(getImageUrl(blog.imageUrl));
@@ -102,7 +119,7 @@ const ManageBlogs = () => {
     setIsFormOpen(false);
     setIsEditMode(false);
     setEditId(null);
-    setFormData({ title: '', category: 'General', content: '', image: null });
+    setFormData({ title: "", category: "General", content: "", image: null });
     setPreview(null);
     setError(null);
   };
@@ -114,49 +131,48 @@ const ManageBlogs = () => {
     setError(null);
 
     const token = getAuthToken();
-    console.log('Token ditemukan:', token); // CEK INI
-    console.log('User dari context:', user); // CEK INI
-    console.log('LocalStorage userInfo:', localStorage.getItem('userInfo')); // CEK INI
+    console.log("Token ditemukan:", token); // CEK INI
+    console.log("User dari context:", user); // CEK INI
+    console.log("LocalStorage userInfo:", localStorage.getItem("userInfo")); // CEK INI
     if (!token) {
-      setError('Anda harus login terlebih dahulu.');
+      setError("Anda harus login terlebih dahulu.");
       setLoading(false);
       return;
     }
 
     const data = new FormData();
-    data.append('title', formData.title);
-    data.append('category', formData.category);
-    data.append('content', formData.content);
+    data.append("title", formData.title);
+    data.append("category", formData.category);
+    data.append("content", formData.content);
     if (formData.image) {
-      data.append('image', formData.image);
+      data.append("image", formData.image);
     }
 
     try {
       const config = {
-        headers: { 
-          'Content-Type': 'multipart/form-data',
-          'Authorization': `Bearer ${token}`
-        }
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        },
       };
 
       if (isEditMode) {
         // UPDATE Logic
         await axios.put(`/api/blogs/${editId}`, data, config);
-        alert('✅ Artikel berhasil diperbarui!');
+        alert("✅ Artikel berhasil diperbarui!");
       } else {
         // CREATE Logic
-        await axios.post('/api/blogs', data, config);
-        alert('✅ Artikel berhasil diterbitkan!');
+        await axios.post("/api/blogs", data, config);
+        alert("✅ Artikel berhasil diterbitkan!");
       }
-      
-      handleCloseForm(); // Reset form & state
-      fetchBlogs();      // Refresh data table
 
+      handleCloseForm(); // Reset form & state
+      fetchBlogs(); // Refresh data table
     } catch (error) {
-      console.error('Submit error:', error.response || error);
-      const msg = error.response?.data?.message || 'Gagal menyimpan artikel.';
+      console.error("Submit error:", error.response || error);
+      const msg = error.response?.data?.message || "Gagal menyimpan artikel.";
       if (error.response?.status === 401) {
-        setError('Sesi berakhir. Silakan login kembali.');
+        setError("Sesi berakhir. Silakan login kembali.");
       } else {
         setError(msg);
       }
@@ -167,36 +183,38 @@ const ManageBlogs = () => {
 
   // Handle Delete
   const handleDelete = async (id) => {
-    if (!window.confirm('Yakin ingin menghapus artikel ini?')) return;
+    if (!window.confirm("Yakin ingin menghapus artikel ini?")) return;
 
     const token = getAuthToken();
     if (!token) {
-      alert('Anda harus login untuk menghapus artikel');
+      alert("Anda harus login untuk menghapus artikel");
       return;
     }
 
     try {
       await axios.delete(`/api/blogs/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       fetchBlogs();
-      alert('✅ Artikel berhasil dihapus');
+      alert("✅ Artikel berhasil dihapus");
     } catch (error) {
-      console.error('Delete error:', error);
-      alert('Gagal menghapus artikel');
+      console.error("Delete error:", error);
+      alert("Gagal menghapus artikel");
     }
   };
 
   return (
     <div className="space-y-6">
-      
       {/* Error Alert */}
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3 animate-fade-in-down">
           <AlertCircle className="text-red-500 mt-0.5" size={20} />
           <div className="flex-1">
             <p className="text-red-800 font-medium">{error}</p>
-            <button onClick={() => setError(null)} className="text-red-600 text-sm underline mt-1 hover:text-red-700">
+            <button
+              onClick={() => setError(null)}
+              className="text-red-600 text-sm underline mt-1 hover:text-red-700"
+            >
               Tutup
             </button>
           </div>
@@ -206,12 +224,16 @@ const ManageBlogs = () => {
       {/* Header Section */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-secondary">Manajemen Artikel Blog</h1>
-          <p className="text-gray-500 text-sm">Kelola postingan blog dan berita terbaru.</p>
+          <h1 className="text-2xl font-bold text-secondary">
+            Manajemen Artikel Blog
+          </h1>
+          <p className="text-gray-500 text-sm">
+            Kelola postingan blog dan berita terbaru.
+          </p>
         </div>
-        
+
         {!isFormOpen && (
-          <button 
+          <button
             onClick={() => {
               handleCloseForm(); // Reset state dulu biar bersih
               setIsFormOpen(true);
@@ -228,23 +250,42 @@ const ManageBlogs = () => {
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 mb-8 animate-fade-in-down">
           <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-100">
             <h3 className="text-lg font-bold text-gray-700">
-              {isEditMode ? 'Edit Artikel' : 'Buat Artikel Baru'}
+              {isEditMode ? "Edit Artikel" : "Buat Artikel Baru"}
             </h3>
-            <button onClick={handleCloseForm} className="p-2 hover:bg-red-50 rounded-full transition">
+            <button
+              onClick={handleCloseForm}
+              className="p-2 hover:bg-red-50 rounded-full transition"
+            >
               <X className="text-gray-400 hover:text-red-500" />
             </button>
           </div>
-          
+
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* ... (Bagian input form sama seperti sebelumnya, tidak ada perubahan logika di sini) ... */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
-                <label className="block text-sm font-bold text-gray-600 mb-2">Judul Artikel</label>
-                <input required name="title" value={formData.title} onChange={handleChange} className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition" placeholder="Judul artikel..." />
+                <label className="block text-sm font-bold text-gray-600 mb-2">
+                  Judul Artikel
+                </label>
+                <input
+                  required
+                  name="title"
+                  value={formData.title}
+                  onChange={handleChange}
+                  className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition"
+                  placeholder="Judul artikel..."
+                />
               </div>
               <div>
-                <label className="block text-sm font-bold text-gray-600 mb-2">Kategori</label>
-                <select name="category" value={formData.category} onChange={handleChange} className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition bg-white">
+                <label className="block text-sm font-bold text-gray-600 mb-2">
+                  Kategori
+                </label>
+                <select
+                  name="category"
+                  value={formData.category}
+                  onChange={handleChange}
+                  className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition bg-white"
+                >
                   <option>General</option>
                   <option>Travel Tips</option>
                   <option>Destinations</option>
@@ -255,31 +296,63 @@ const ManageBlogs = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-gray-600 mb-2">Konten</label>
-              <textarea required name="content" rows="6" value={formData.content} onChange={handleChange} className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition" placeholder="Isi artikel..." />
+              <label className="block text-sm font-bold text-gray-600 mb-2">
+                Konten
+              </label>
+              <textarea
+                required
+                name="content"
+                rows="6"
+                value={formData.content}
+                onChange={handleChange}
+                className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition"
+                placeholder="Isi artikel..."
+              />
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-gray-600 mb-2">Gambar Cover</label>
+              <label className="block text-sm font-bold text-gray-600 mb-2">
+                Gambar Cover
+              </label>
               <div className="flex items-center gap-4 p-4 border border-dashed border-gray-300 rounded-xl bg-gray-50">
                 <label className="cursor-pointer bg-white px-4 py-2 rounded-lg border border-gray-200 hover:bg-gray-50 shadow-sm flex items-center gap-2 text-gray-600 transition">
-                  <Image size={18} /> {isEditMode ? 'Ganti Gambar' : 'Pilih Gambar'}
-                  <input type="file" onChange={handleImageChange} className="hidden" accept="image/*" />
+                  <Image size={18} />{" "}
+                  {isEditMode ? "Ganti Gambar" : "Pilih Gambar"}
+                  <input
+                    type="file"
+                    onChange={handleImageChange}
+                    className="hidden"
+                    accept="image/*"
+                  />
                 </label>
                 {preview ? (
-                  <img src={preview} alt="Preview" className="h-16 w-24 object-cover rounded-lg border border-gray-200 shadow-sm" />
+                  <img
+                    src={preview}
+                    alt="Preview"
+                    className="h-16 w-24 object-cover rounded-lg border border-gray-200 shadow-sm"
+                  />
                 ) : (
-                  <span className="text-sm text-gray-400">Belum ada gambar dipilih</span>
+                  <span className="text-sm text-gray-400">
+                    Belum ada gambar dipilih
+                  </span>
                 )}
               </div>
             </div>
 
             <div className="flex justify-end pt-4">
-              <button type="submit" disabled={loading} className="bg-primary text-white px-8 py-2.5 rounded-xl font-bold hover:bg-primary-dark disabled:opacity-70 shadow-lg shadow-primary/30 transition active:scale-95">
+              <button
+                type="submit"
+                disabled={loading}
+                className="bg-primary text-white px-8 py-2.5 rounded-xl font-bold hover:bg-primary-dark disabled:opacity-70 shadow-lg shadow-primary/30 transition active:scale-95"
+              >
                 {loading ? (
-                  <span className="flex items-center gap-2"><Loader2 className="animate-spin" size={18}/> Menyimpan...</span>
+                  <span className="flex items-center gap-2">
+                    <Loader2 className="animate-spin" size={18} /> Menyimpan...
+                  </span>
+                ) : isEditMode ? (
+                  "Simpan Perubahan"
                 ) : (
-                  isEditMode ? 'Simpan Perubahan' : 'Terbitkan Artikel'
+                  "Terbitkan Artikel"
                 )}
               </button>
             </div>
@@ -290,7 +363,9 @@ const ManageBlogs = () => {
       {/* Table List */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
         {fetchLoading ? (
-          <div className="p-12 flex justify-center"><Loader2 className="animate-spin text-primary w-8 h-8" /></div>
+          <div className="p-12 flex justify-center">
+            <Loader2 className="animate-spin text-primary w-8 h-8" />
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full text-left border-collapse">
@@ -304,15 +379,18 @@ const ManageBlogs = () => {
               </thead>
               <tbody className="text-gray-600 text-sm font-medium divide-y divide-gray-100">
                 {blogs.map((blog) => (
-                  <tr key={blog.id || blog._id} className="hover:bg-gray-50 transition">
+                  <tr
+                    key={blog.id || blog._id}
+                    className="hover:bg-gray-50 transition"
+                  >
                     <td className="py-4 px-6 align-middle">
                       <div className="flex items-center gap-4">
                         {/* Logic Preview Gambar di Tabel diperbaiki */}
                         {blog.imageUrl ? (
-                          <img 
-                            className="w-20 h-14 object-cover rounded-lg shadow-sm border border-gray-100" 
-                            src={getImageUrl(blog.imageUrl)} 
-                            alt="" 
+                          <img
+                            className="w-20 h-14 object-cover rounded-lg shadow-sm border border-gray-100"
+                            src={getImageUrl(blog.imageUrl)}
+                            alt=""
                           />
                         ) : (
                           <div className="w-20 h-14 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400">
@@ -320,9 +398,11 @@ const ManageBlogs = () => {
                           </div>
                         )}
                         <div>
-                          <div className="text-secondary font-bold text-base line-clamp-1">{blog.title}</div>
+                          <div className="text-secondary font-bold text-base line-clamp-1">
+                            {blog.title}
+                          </div>
                           <div className="text-xs text-gray-400 mt-1 flex items-center gap-1">
-                            Author: {blog.author || 'Admin'}
+                            Author: {blog.author || "Admin"}
                           </div>
                         </div>
                       </div>
@@ -337,8 +417,10 @@ const ManageBlogs = () => {
                     <td className="py-4 px-6 align-middle">
                       <div className="flex items-center gap-2 text-gray-500">
                         <Calendar size={14} />
-                        {new Date(blog.createdAt).toLocaleDateString('id-ID', {
-                          year: 'numeric', month: 'long', day: 'numeric'
+                        {new Date(blog.createdAt).toLocaleDateString("id-ID", {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
                         })}
                       </div>
                     </td>
@@ -346,7 +428,7 @@ const ManageBlogs = () => {
                     <td className="py-4 px-6 text-center align-middle">
                       <div className="flex items-center justify-center gap-2">
                         {/* TOMBOL EDIT DITAMBAHKAN DI SINI */}
-                        <button 
+                        <button
                           onClick={() => handleEditClick(blog)}
                           className="p-2 rounded-lg bg-yellow-50 text-yellow-600 hover:bg-yellow-100 border border-yellow-200 transition active:scale-95"
                           title="Edit Artikel"
@@ -354,8 +436,8 @@ const ManageBlogs = () => {
                           <Edit size={18} />
                         </button>
 
-                        <button 
-                          onClick={() => handleDelete(blog.id || blog._id)} 
+                        <button
+                          onClick={() => handleDelete(blog.id || blog._id)}
                           className="p-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 transition active:scale-95"
                           title="Hapus Artikel"
                         >
@@ -365,13 +447,13 @@ const ManageBlogs = () => {
                     </td>
                   </tr>
                 ))}
-                
+
                 {blogs.length === 0 && (
                   <tr>
                     <td colSpan="4" className="p-12 text-center text-gray-500">
                       <div className="flex flex-col items-center justify-center">
                         <div className="bg-gray-100 p-4 rounded-full mb-3">
-                          <FileText size={32} className="text-gray-400"/>
+                          <FileText size={32} className="text-gray-400" />
                         </div>
                         <p className="font-medium">Belum ada artikel blog.</p>
                       </div>

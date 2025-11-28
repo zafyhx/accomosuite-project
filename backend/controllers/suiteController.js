@@ -41,7 +41,7 @@ const createSuite = async (req, res) => {
 
     const suite = new Suite({
       name,
-      location, // BARU: Simpan lokasi ke database
+      location, 
       type,
       price,
       description,

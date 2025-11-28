@@ -12,11 +12,13 @@ const ProtectedRoute = ({ children, adminOnly = false }) => {
   // Ambil user dari Context
   const { user, loading } = useContext(AuthContext);
 
-  // Jika loading, tampilkan indikator 
+  // Jika loading, tampilkan indikator
   if (loading) {
-    return <div className="text-center py-20 text-gray-500">Memuat sesi...</div>;
+    return (
+      <div className="text-center py-20 text-gray-500">Memuat sesi...</div>
+    );
   }
-  
+
   // 1. Cek apakah user sudah login
   if (!user || !user.token) {
     // Jika tidak login, alihkan ke halaman login
@@ -24,7 +26,7 @@ const ProtectedRoute = ({ children, adminOnly = false }) => {
   }
 
   // 2. Cek jika rute ini HANYA untuk Admin
-  if (adminOnly && user.role !== 'admin') {
+  if (adminOnly && user.role !== "admin") {
     // Jika user bukan admin tapi mencoba akses rute admin
     alert("Akses ditolak. Anda tidak memiliki hak akses Admin.");
     // Alihkan ke halaman utama (Home)

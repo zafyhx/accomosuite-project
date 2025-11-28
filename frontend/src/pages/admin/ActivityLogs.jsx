@@ -1,14 +1,7 @@
-import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
+import { Clock, Loader2, ShieldAlert, User } from "lucide-react";
+import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../../context/AuthContext";
-import { 
-  Clock, 
-  User, 
-  Activity, 
-  ShieldAlert,
-  Loader2,
-  Search
-} from "lucide-react";
 
 const ActivityLogs = () => {
   const [logs, setLogs] = useState([]);
@@ -17,7 +10,8 @@ const ActivityLogs = () => {
 
   const fetchLogs = async () => {
     try {
-      const token = user?.token || JSON.parse(localStorage.getItem("userInfo"))?.token;
+      const token =
+        user?.token || JSON.parse(localStorage.getItem("userInfo"))?.token;
       const config = { headers: { Authorization: `Bearer ${token}` } };
       const { data } = await axios.get("/api/logs", config);
       setLogs(data);
@@ -34,9 +28,12 @@ const ActivityLogs = () => {
 
   // Helper Warna Badge Aksi
   const getActionColor = (action) => {
-    if (action.includes("DELETE")) return "bg-red-100 text-red-700 border-red-200";
-    if (action.includes("CREATE")) return "bg-green-100 text-green-700 border-green-200";
-    if (action.includes("UPDATE")) return "bg-blue-100 text-blue-700 border-blue-200";
+    if (action.includes("DELETE"))
+      return "bg-red-100 text-red-700 border-red-200";
+    if (action.includes("CREATE"))
+      return "bg-green-100 text-green-700 border-green-200";
+    if (action.includes("UPDATE"))
+      return "bg-blue-100 text-blue-700 border-blue-200";
     return "bg-gray-100 text-gray-700 border-gray-200";
   };
 
@@ -45,11 +42,13 @@ const ActivityLogs = () => {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-secondary">Log Aktivitas</h1>
-          <p className="text-gray-500 text-sm">Rekaman jejak tindakan admin dalam sistem.</p>
+          <p className="text-gray-500 text-sm">
+            Rekaman jejak tindakan admin dalam sistem.
+          </p>
         </div>
         <div className="bg-white px-4 py-2 rounded-xl shadow-sm border border-gray-200 flex items-center gap-2 text-sm text-gray-500">
-            <ShieldAlert size={16} />
-            <span>Hanya Admin</span>
+          <ShieldAlert size={16} />
+          <span>Hanya Admin</span>
         </div>
       </div>
 
@@ -75,18 +74,22 @@ const ActivityLogs = () => {
                     <tr key={log._id} className="hover:bg-gray-50 transition">
                       <td className="py-4 px-6 text-gray-500 whitespace-nowrap">
                         <div className="flex items-center gap-2">
-                            <Clock size={14}/>
-                            {new Date(log.createdAt).toLocaleString('id-ID')}
+                          <Clock size={14} />
+                          {new Date(log.createdAt).toLocaleString("id-ID")}
                         </div>
                       </td>
                       <td className="py-4 px-6 font-medium text-secondary">
                         <div className="flex items-center gap-2">
-                            <User size={14} className="text-gray-400"/>
-                            {log.actor ? log.actor.name : "Unknown"}
+                          <User size={14} className="text-gray-400" />
+                          {log.actor ? log.actor.name : "Unknown"}
                         </div>
                       </td>
                       <td className="py-4 px-6">
-                        <span className={`px-2 py-1 rounded-md text-xs font-bold border ${getActionColor(log.action)}`}>
+                        <span
+                          className={`px-2 py-1 rounded-md text-xs font-bold border ${getActionColor(
+                            log.action
+                          )}`}
+                        >
                           {log.action}
                         </span>
                       </td>

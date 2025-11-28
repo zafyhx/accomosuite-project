@@ -1,10 +1,10 @@
-const multer = require('multer');
-const path = require('path');
+const multer = require("multer");
+const path = require("path");
 
 // Konfigurasi penyimpanan file
 const storage = multer.diskStorage({
   destination(req, file, cb) {
-    cb(null, 'uploads/'); // Pastikan folder 'uploads' ada di root backend
+    cb(null, "uploads/"); // Pastikan folder 'uploads' ada di root backend
   },
   filename(req, file, cb) {
     // Format nama file: blog-TIMESTAMP.extensi
@@ -21,7 +21,9 @@ const fileFilter = (req, file, cb) => {
   if (extname && mimetype) {
     return cb(null, true);
   } else {
-    cb(new Error('Hanya file gambar (jpg, jpeg, png, webp) yang diperbolehkan!'));
+    cb(
+      new Error("Hanya file gambar (jpg, jpeg, png, webp) yang diperbolehkan!")
+    );
   }
 };
 

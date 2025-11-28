@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import axios from 'axios';
-import { Calendar, User, ArrowLeft, Tag } from 'lucide-react';
+import axios from "axios";
+import { ArrowLeft, Calendar, Tag, User } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
 
 const BlogDetail = () => {
   const { id } = useParams();
@@ -27,28 +27,29 @@ const BlogDetail = () => {
   }, [id]);
 
   if (loading) return <div className="text-center py-20">Loading...</div>;
-  if (error) return <div className="text-center py-20 text-red-500">{error}</div>;
+  if (error)
+    return <div className="text-center py-20 text-red-500">{error}</div>;
   if (!blog) return null;
 
   // FIX IMAGE URL LOGIC
-  const imageUrl = blog.imageUrl && !blog.imageUrl.startsWith('http') 
-      ? `http://localhost:5000${blog.imageUrl}` 
-      : (blog.imageUrl || "https://via.placeholder.com/800x400");
+  const imageUrl =
+    blog.imageUrl && !blog.imageUrl.startsWith("http")
+      ? `http://localhost:5000${blog.imageUrl}`
+      : blog.imageUrl || "https://via.placeholder.com/800x400";
 
   return (
     <div className="bg-gray-50 min-h-screen py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto bg-white rounded-3xl shadow-xl overflow-hidden">
-        
         {/* Header Image */}
         <div className="relative h-64 md:h-96 w-full">
-          <img 
-            src={imageUrl} 
-            alt={blog.title} 
+          <img
+            src={imageUrl}
+            alt={blog.title}
             className="w-full h-full object-cover"
           />
           <div className="absolute top-4 left-4">
-            <Link 
-              to="/blog" 
+            <Link
+              to="/blog"
               className="inline-flex items-center px-4 py-2 bg-white/90 backdrop-blur rounded-full text-sm font-medium text-gray-800 hover:bg-white transition-colors"
             >
               <ArrowLeft className="w-4 h-4 mr-2" /> Kembali
@@ -64,13 +65,15 @@ const BlogDetail = () => {
             </span>
             <span className="flex items-center">
               <Calendar className="w-4 h-4 mr-2" />
-              {new Date(blog.createdAt).toLocaleDateString('id-ID', { 
-                day: 'numeric', month: 'long', year: 'numeric' 
+              {new Date(blog.createdAt).toLocaleDateString("id-ID", {
+                day: "numeric",
+                month: "long",
+                year: "numeric",
               })}
             </span>
             <span className="flex items-center">
               <User className="w-4 h-4 mr-2" />
-              {blog.author || 'Admin'}
+              {blog.author || "Admin"}
             </span>
           </div>
 
@@ -86,9 +89,13 @@ const BlogDetail = () => {
 
           <div className="bg-gray-50 p-6 rounded-xl border border-gray-100 text-center">
             <p className="text-gray-600 italic">
-              "Terima kasih telah membaca artikel ini. Jelajahi akomodasi terbaik kami untuk pengalaman liburan tak terlupakan."
+              "Terima kasih telah membaca artikel ini. Jelajahi akomodasi
+              terbaik kami untuk pengalaman liburan tak terlupakan."
             </p>
-            <Link to="/" className="inline-block mt-4 text-primary font-semibold hover:underline">
+            <Link
+              to="/"
+              className="inline-block mt-4 text-primary font-semibold hover:underline"
+            >
               Cari Akomodasi Sekarang
             </Link>
           </div>

@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect } from "react";
+import { createContext, useEffect, useState } from "react";
 
 // 1. Buat Context (Wadah Global)
 export const AuthContext = createContext();
@@ -20,7 +20,7 @@ export const AuthProvider = ({ children }) => {
   const login = (userData) => {
     setUser(userData);
     // Simpan ke memori browser biar kalau di-refresh gak hilang
-    localStorage.setItem("user", JSON.stringify(userData)); 
+    localStorage.setItem("user", JSON.stringify(userData));
   };
 
   // 4. Fungsi Logout

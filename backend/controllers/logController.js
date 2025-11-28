@@ -1,4 +1,4 @@
-const Log = require('../models/Log');
+const Log = require("../models/Log");
 
 // --- FUNGSI HELPER (Internal Use) ---
 // Fungsi ini akan dipanggil oleh controller lain (User, Booking, Suite)
@@ -8,7 +8,7 @@ const addLog = async (actorId, action, description, entityId = null) => {
       actor: actorId,
       action,
       description,
-      entityId
+      entityId,
     });
   } catch (error) {
     console.error("Gagal mencatat log:", error);
@@ -24,13 +24,13 @@ const addLog = async (actorId, action, description, entityId = null) => {
 const getLogs = async (req, res) => {
   try {
     const logs = await Log.find({})
-      .populate('actor', 'name email role') // Ambil nama admin
+      .populate("actor", "name email role") // Ambil nama admin
       .sort({ createdAt: -1 }) // Paling baru di atas
       .limit(100); // Batasi 100 log terakhir agar ringan
 
     res.json(logs);
   } catch (error) {
-    res.status(500).json({ message: 'Gagal mengambil log aktivitas' });
+    res.status(500).json({ message: "Gagal mengambil log aktivitas" });
   }
 };
 

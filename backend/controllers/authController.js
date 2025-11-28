@@ -1,5 +1,5 @@
-const User = require('../models/User');
-const generateToken = require('../utils/generateToken');
+const User = require("../models/User");
+const generateToken = require("../utils/generateToken");
 
 // @desc    Registrasi User Baru
 // @route   POST /api/auth/register
@@ -11,7 +11,9 @@ const registerUser = async (req, res) => {
     // 1. Cek apakah email sudah terdaftar?
     const userExists = await User.findOne({ email });
     if (userExists) {
-      return res.status(400).json({ message: 'Email sudah terdaftar, silakan login.' });
+      return res
+        .status(400)
+        .json({ message: "Email sudah terdaftar, silakan login." });
     }
 
     // 2. Buat user baru di database
@@ -19,7 +21,7 @@ const registerUser = async (req, res) => {
       name,
       email,
       password, // Password akan otomatis di-hash di User.js
-      phone
+      phone,
     });
 
     // 3. Jika sukses, kirim data user + TOKEN ke frontend
@@ -29,10 +31,10 @@ const registerUser = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
-        token: generateToken(user._id) // <-- Ini "Gelang" aksesnya
+        token: generateToken(user._id), // <-- Ini "Gelang" aksesnya
       });
     } else {
-      res.status(400).json({ message: 'Data user tidak valid' });
+      res.status(400).json({ message: "Data user tidak valid" });
     }
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -47,7 +49,7 @@ const loginUser = async (req, res) => {
     const { email, password } = req.body;
 
     // 1. Cari user berdasarkan email
-    const user = await User.findOne({ email }).select('+password'); // Kita perlu password untuk dicocokkan
+    const user = await User.findOne({ email }).select("+password"); // Kita perlu password untuk dicocokkan
 
     // 2. Cek apakah user ada DAN passwordnya cocok
     if (user && (await user.matchPassword(password))) {
@@ -56,10 +58,10 @@ const loginUser = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
-        token: generateToken(user._id) // Berikan token baru
+        token: generateToken(user._id), // Berikan token baru
       });
     } else {
-      res.status(401).json({ message: 'Email atau Password salah' });
+      res.status(401).json({ message: "Email atau Password salah" });
     }
   } catch (error) {
     res.status(500).json({ message: error.message });
