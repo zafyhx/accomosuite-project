@@ -24,6 +24,17 @@ const MyBookings = () => {
   const [error, setError] = useState(null);
   const [isCancelling, setIsCancelling] = useState(null);
 
+  const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+  // Helper agar URL gambar dinamis (bisa localhost atau server live)
+  const getImageUrl = (path) => {
+    if (!path) return "https://via.placeholder.com/400?text=No+Image";
+    // Jika path sudah ada http (link eksternal), pakai langsung
+    if (path.startsWith("http")) return path;
+    // Jika path relative (/uploads/...), gabungkan dengan API URL
+    return `${API_BASE_URL}${path}`;
+  };
+
   // --- 1. Fetch Data Riwayat Booking ---
   const fetchMyBookings = async () => {
     if (!user || !user.token) {
@@ -117,7 +128,7 @@ const MyBookings = () => {
         return {
           icon: <CheckCircle2 size={14} />,
           color: "bg-blue-100 text-blue-700 border-blue-200 " + defaultStyle,
-        }; // Status Checked In
+        }; 
       case "cancelled":
         return {
           icon: <Ban size={14} />,
@@ -206,13 +217,13 @@ const MyBookings = () => {
                     {/* Bagian Gambar Kamar */}
                     <div className="md:w-1/3 lg:w-1/4 h-48 md:h-auto relative">
                       <img
-                        src={
-                          item.suite?.images?.[0]
-                            ? `http://localhost:5000${item.suite.images[0]}`
-                            : "https://via.placeholder.com/400?text=No+Image"
-                        }
+                        src={getImageUrl(item.suite?.images?.[0])}
                         alt={item.suite?.name || "Properti Dihapus"}
                         className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = "https://via.placeholder.com/400?text=No+Image";
+                        }}
                       />
                       <div className="absolute top-4 left-4">
                         <span className={status.color}>
