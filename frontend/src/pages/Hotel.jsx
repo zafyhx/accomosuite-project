@@ -74,7 +74,7 @@ export default function HotelsPage() {
     fetchSuites();
   }, [location.search]);
 
-  // 2. Logic Filter & Sorting (UPDATED with Category)
+  // 2. Logic Filter & Sorting
   useEffect(() => {
     let result = [...suites];
 
@@ -91,7 +91,7 @@ export default function HotelsPage() {
     // Filter by Price
     result = result.filter((suite) => suite.price <= priceRange);
 
-    // Filter by Category (NEW)
+    // Filter by Category 
     if (activeCategory !== "Semua") {
       // Asumsi: di database ada field 'type'. Jika tidak, filter ini hanya visual dummy.
       // Kita gunakan toLowerCase() agar tidak sensitif huruf besar/kecil
@@ -119,10 +119,10 @@ export default function HotelsPage() {
 
   // --- RENDER ---
   return (
-    <div className="min-h-screen bg-gray-50 pt-24 pb-20 font-sans">
+    <div className="min-h-screen bg-gray-50 pt-14 md:pt-[80px] pb-20 font-sans">
       {/* === HEADER & FILTER BAR (Sticky & Glassmorphism) === */}
-      <div className="sticky top-[70px] z-30 transition-all duration-300">
-        <div className="absolute inset-0 bg-white/80 backdrop-blur-md border-b border-gray-200 shadow-sm"></div>
+      <div className="sticky top-14 md:top-[80px] z-30 transition-all duration-300">
+        <div className="absolute inset-0 bg-white/90 backdrop-blur-md border-b border-gray-200 shadow-sm"></div>
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10 py-4">
           <div className="flex flex-col lg:flex-row gap-4 justify-between items-center">
             {/* Search Input */}
@@ -162,7 +162,7 @@ export default function HotelsPage() {
                 />
               </div>
 
-              {/* Sort Dropdown (Styled - EMOJI REMOVED) */}
+              {/* Sort Dropdown */}
               <div className="relative min-w-[180px]">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <SlidersHorizontal className="h-4 w-4 text-gray-500" />

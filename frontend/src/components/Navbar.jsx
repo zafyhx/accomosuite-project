@@ -23,7 +23,7 @@ const Navbar = () => {
 
   const navBg = transparentMode
     ? "bg-transparent"
-    : "bg-white/90 backdrop-blur-md shadow-sm"; // Update: opacity 90 biar lebih jelas
+    : "bg-white/90 backdrop-blur-md shadow-sm";
   const textColor = transparentMode ? "text-white" : "text-secondary";
   const lineColor = transparentMode ? "bg-white" : "bg-primary";
 

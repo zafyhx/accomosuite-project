@@ -24,7 +24,7 @@ import SuiteForm from "./pages/admin/SuiteForm";
 import BookingSuccess from "./pages/BookingSuccess";
 import CheckIn from "./pages/CheckIn";
 import MyBookings from "./pages/MyBookings";
-import SuiteDetail from "./pages/SuiteDetail";
+import SuiteDetail from "./pages/HotelDetail";
 import UserProfile from "./pages/UserProfile";
 
 // --- BLOG & OTHERS ---
