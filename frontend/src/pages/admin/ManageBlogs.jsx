@@ -9,7 +9,7 @@ import {
   Plus,
   Trash2,
   X,
-} from "lucide-react"; // Tambah import Edit
+} from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../../context/AuthContext";
 
@@ -37,10 +37,7 @@ const ManageBlogs = () => {
 
   // 1. Get Token Helper
   const getAuthToken = () => {
-    // 1. Prioritas dari Context
     if (user && user.token) return user.token;
-
-    // 2. Backup dari localStorage
     try {
       const userInfo = localStorage.getItem("userInfo");
       if (!userInfo) return null;
@@ -52,14 +49,12 @@ const ManageBlogs = () => {
     }
   };
 
-  // 2. Get Image URL Helper (Fix Bug Preview Gambar)
-  const getImageUrl = (imagePath) => {
-    if (!imagePath) return null;
-    // Jika path sudah lengkap (http...), gunakan langsung. Jika relatif, tambahkan host backend.
-    // Sesuaikan 'http://localhost:5000' dengan URL backend yang sebenarnya
-    return imagePath.startsWith("http")
-      ? imagePath
-      : `http://localhost:5000${imagePath}`;
+  // 2. Get Image URL Helper (FIX: Agar gambar muncul di Localhost & Live)
+  const getImageUrl = (path) => {
+    if (!path) return "https://via.placeholder.com/600x400?text=No+Image";
+    // Gunakan VITE_API_URL dari .env, fallback ke localhost jika tidak ada
+    const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+    return path.startsWith("http") ? path : `${BASE_URL}${path}`;
   };
 
   // --- Main Logic ---
@@ -98,23 +93,24 @@ const ManageBlogs = () => {
     }
   };
 
-  // Handle Edit Click (NEW)
+  // Handle Edit Click
   const handleEditClick = (blog) => {
     setIsEditMode(true);
-    setEditId(blog._id || blog.id); // Pastikan ID sesuai field DB (biasanya _id di Mongo)
+    setEditId(blog._id || blog.id);
     setFormData({
       title: blog.title,
       category: blog.category,
       content: blog.content,
-      image: null, // Reset file input karena kita pakai gambar lama by default
+      image: null, // Reset input file
     });
-    // Set preview dari gambar yang sudah ada di server
-    setPreview(getImageUrl(blog.imageUrl));
+    // FIX: Set preview menggunakan gambar lama dari server
+    // Cek apakah field di database 'imageUrl' atau 'image'
+    setPreview(getImageUrl(blog.imageUrl || blog.image));
     setIsFormOpen(true);
     setError(null);
   };
 
-  // Handle Cancel / Close Form
+  // Handle Close Form
   const handleCloseForm = () => {
     setIsFormOpen(false);
     setIsEditMode(false);
@@ -131,9 +127,6 @@ const ManageBlogs = () => {
     setError(null);
 
     const token = getAuthToken();
-    console.log("Token ditemukan:", token); // CEK INI
-    console.log("User dari context:", user); // CEK INI
-    console.log("LocalStorage userInfo:", localStorage.getItem("userInfo")); // CEK INI
     if (!token) {
       setError("Anda harus login terlebih dahulu.");
       setLoading(false);
@@ -157,25 +150,19 @@ const ManageBlogs = () => {
       };
 
       if (isEditMode) {
-        // UPDATE Logic
         await axios.put(`/api/blogs/${editId}`, data, config);
         alert("✅ Artikel berhasil diperbarui!");
       } else {
-        // CREATE Logic
         await axios.post("/api/blogs", data, config);
         alert("✅ Artikel berhasil diterbitkan!");
       }
 
-      handleCloseForm(); // Reset form & state
-      fetchBlogs(); // Refresh data table
+      handleCloseForm();
+      fetchBlogs();
     } catch (error) {
       console.error("Submit error:", error.response || error);
       const msg = error.response?.data?.message || "Gagal menyimpan artikel.";
-      if (error.response?.status === 401) {
-        setError("Sesi berakhir. Silakan login kembali.");
-      } else {
-        setError(msg);
-      }
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -186,11 +173,6 @@ const ManageBlogs = () => {
     if (!window.confirm("Yakin ingin menghapus artikel ini?")) return;
 
     const token = getAuthToken();
-    if (!token) {
-      alert("Anda harus login untuk menghapus artikel");
-      return;
-    }
-
     try {
       await axios.delete(`/api/blogs/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -235,7 +217,7 @@ const ManageBlogs = () => {
         {!isFormOpen && (
           <button
             onClick={() => {
-              handleCloseForm(); // Reset state dulu biar bersih
+              handleCloseForm();
               setIsFormOpen(true);
             }}
             className="bg-primary hover:bg-primary-dark text-white px-5 py-2.5 rounded-xl flex items-center gap-2 transition font-bold shadow-lg shadow-primary/30 active:scale-95"
@@ -261,7 +243,6 @@ const ManageBlogs = () => {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
-            {/* ... (Bagian input form sama seperti sebelumnya, tidak ada perubahan logika di sini) ... */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
                 <label className="block text-sm font-bold text-gray-600 mb-2">
@@ -385,11 +366,12 @@ const ManageBlogs = () => {
                   >
                     <td className="py-4 px-6 align-middle">
                       <div className="flex items-center gap-4">
-                        {/* Logic Preview Gambar di Tabel diperbaiki */}
-                        {blog.imageUrl ? (
+                        {/* FIX: Preview Gambar di Tabel */}
+                        {blog.imageUrl || blog.image ? (
                           <img
                             className="w-20 h-14 object-cover rounded-lg shadow-sm border border-gray-100"
-                            src={getImageUrl(blog.imageUrl)}
+                            // Cek kedua kemungkinan nama field: imageUrl atau image
+                            src={getImageUrl(blog.imageUrl || blog.image)}
                             alt=""
                           />
                         ) : (
@@ -427,7 +409,6 @@ const ManageBlogs = () => {
 
                     <td className="py-4 px-6 text-center align-middle">
                       <div className="flex items-center justify-center gap-2">
-                        {/* TOMBOL EDIT DITAMBAHKAN DI SINI */}
                         <button
                           onClick={() => handleEditClick(blog)}
                           className="p-2 rounded-lg bg-yellow-50 text-yellow-600 hover:bg-yellow-100 border border-yellow-200 transition active:scale-95"

@@ -125,7 +125,12 @@ const Home = () => {
 
   const getImageUrl = (path) => {
     if (!path) return "https://via.placeholder.com/600x400?text=No+Image";
-    return path.startsWith("http") ? path : `http://localhost:5000${path}`;
+
+    // FIX UTAMA: Gunakan import.meta.env (Vite standard)
+    // Ubah nama variabel menjadi VITE_API_URL
+    const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+    
+    return path.startsWith("http") ? path : `${BASE_URL}${path}`;
   };
 
   return (

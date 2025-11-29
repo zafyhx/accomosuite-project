@@ -1,7 +1,6 @@
 import axios from "axios";
 import { useContext, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-// Pastikan path import ini benar sesuai struktur folder Anda
 import { ArrowLeft, Loader2, Save, Upload, X } from "lucide-react";
 import { AuthContext } from "../../context/AuthContext.jsx";
 
@@ -46,8 +45,18 @@ const SuiteForm = () => {
             capacity: data.capacity || 2,
           });
 
+          // FIX: Preview Gambar saat Edit Mode
           if (data.images && data.images.length > 0) {
-            setPreview(`http://localhost:5000${data.images[0]}`);
+            const API_BASE_URL =
+              import.meta.env.VITE_API_URL || "http://localhost:5000";
+            const imgPath = data.images[0];
+
+            // Cek apakah gambar dari link eksternal atau lokal server
+            const previewUrl = imgPath.startsWith("http")
+              ? imgPath
+              : `${API_BASE_URL}${imgPath}`;
+
+            setPreview(previewUrl);
           }
         } catch (error) {
           setError(
@@ -70,6 +79,7 @@ const SuiteForm = () => {
     const file = e.target.files[0];
     if (file) {
       setImageFile(file);
+      // Untuk file baru yang diupload dari komputer, URL.createObjectURL sudah benar
       setPreview(URL.createObjectURL(file));
       setError(null);
     }
@@ -98,7 +108,6 @@ const SuiteForm = () => {
 
     // 2. FIX: PERBAIKAN LOGIKA FASILITAS
     // Backend mengharapkan String agar bisa di-split.
-    // Jadi kita kirim string mentah saja, jangan dipecah jadi array di sini.
     const facilitiesString = String(formData.facilities || "").trim();
     data.append("facilities", facilitiesString);
 
@@ -139,7 +148,9 @@ const SuiteForm = () => {
       console.error("Gagal menyimpan data:", err.response || err);
       // Menampilkan pesan error detail dari backend
       const serverMessage =
-        err.response?.data?.message || err.response?.data?.error || err.message;
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        err.message;
       setError(`Gagal menyimpan data. Server merespon: ${serverMessage}`);
     } finally {
       setIsSaving(false);

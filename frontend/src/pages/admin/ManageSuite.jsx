@@ -17,6 +17,13 @@ const ManageSuites = () => {
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
 
+  // FIX: Helper untuk mendapatkan URL gambar (Localhost & Live)
+  const getImageUrl = (path) => {
+    if (!path) return "https://via.placeholder.com/600x400?text=No+Image";
+    const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+    return path.startsWith("http") ? path : `${BASE_URL}${path}`;
+  };
+
   const fetchSuites = async () => {
     try {
       setLoading(true);
@@ -96,7 +103,8 @@ const ManageSuites = () => {
                       <td className="py-4 px-6 align-middle">
                         {suite.images && suite.images[0] ? (
                           <img
-                            src={`http://localhost:5000${suite.images[0]}`}
+                            // FIX: Gunakan helper getImageUrl disini
+                            src={getImageUrl(suite.images[0])}
                             alt={suite.name}
                             className="w-20 h-14 object-cover rounded-lg shadow-sm border border-gray-100"
                           />
