@@ -15,7 +15,7 @@ import {
   SlidersHorizontal,
   Star,
   Tent,
-  TicketPercent, // Ikon baru ditambahkan
+  TicketPercent,
   Wifi,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -32,13 +32,16 @@ export default function HotelsPage() {
 
   // Filter States
   const [searchTerm, setSearchTerm] = useState("");
-  const [priceRange, setPriceRange] = useState(10000000);
+  
+  // PERBAIKAN 1: Default Price Range dinaikkan ke MAX (50jt) agar Best Choice tidak hilang saat search
+  const [priceRange, setPriceRange] = useState(50000000); 
+  
   const [sortBy, setSortBy] = useState("recommended");
 
   // --- NEW STATE: Quick Category ---
   const [activeCategory, setActiveCategory] = useState("Semua");
 
-  // Daftar Kategori (Pastikan ini sesuai dengan data di DB nanti, atau biarkan sebagai filter visual)
+  // Daftar Kategori
   const categories = [
     { name: "Semua", icon: <LayoutGrid size={16} /> },
     { name: "Hotel", icon: <Building2 size={16} /> },
@@ -52,8 +55,6 @@ export default function HotelsPage() {
 
   const getImageUrl = (path) => {
     if (!path) return "https://via.placeholder.com/600x400?text=No+Image";
-    // Jika path sudah ada http (link online), pakai itu.
-    // Jika tidak, gabungkan dengan URL Railway/Localhost.
     return path.startsWith("http") ? path : `${API_BASE_URL}${path}`;
   };
 
@@ -97,8 +98,6 @@ export default function HotelsPage() {
 
     // Filter by Category
     if (activeCategory !== "Semua") {
-      // Asumsi: di database ada field 'type'. Jika tidak, filter ini hanya visual dummy.
-      // Kita gunakan toLowerCase() agar tidak sensitif huruf besar/kecil
       result = result.filter(
         (suite) =>
           suite.type &&
@@ -111,15 +110,21 @@ export default function HotelsPage() {
       result.sort((a, b) => a.price - b.price);
     } else if (sortBy === "priceHigh") {
       result.sort((a, b) => b.price - a.price);
+    } else if (sortBy === "recommended") {
+       // Opsional: Sort rekomendasi bisa berdasarkan harga tertinggi (sultan) dulu
+       result.sort((a, b) => b.price - a.price);
     }
 
     setFilteredSuites(result);
   }, [suites, searchTerm, priceRange, sortBy, activeCategory]);
 
-  // Top Recommendations
+  // Top Recommendations (3 Termahal)
   const topRecommendations = [...suites]
     .sort((a, b) => b.price - a.price)
     .slice(0, 3);
+  
+  // Set ID untuk deteksi badge di list bawah
+  const topRecommendationIds = new Set(topRecommendations.map(s => s._id));
 
   // --- RENDER ---
   return (
@@ -145,7 +150,7 @@ export default function HotelsPage() {
 
             {/* Filters & Sort Group */}
             <div className="flex flex-wrap items-center gap-4 w-full lg:w-auto">
-              {/* Price Range Slider (Modern Custom) */}
+              {/* Price Range Slider */}
               <div className="flex-1 min-w-[200px] bg-gray-50 px-4 py-2 rounded-xl border border-gray-200">
                 <div className="flex justify-between items-center mb-1">
                   <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">
@@ -158,7 +163,7 @@ export default function HotelsPage() {
                 <input
                   type="range"
                   min="0"
-                  max="60000000"
+                  max="50000000"
                   step="500000"
                   value={priceRange}
                   onChange={(e) => setPriceRange(Number(e.target.value))}
@@ -187,7 +192,7 @@ export default function HotelsPage() {
             </div>
           </div>
 
-          {/* --- NEW FEATURE: CATEGORY PILLS --- */}
+          {/* --- CATEGORY PILLS --- */}
           <div className="flex gap-3 mt-4 overflow-x-auto pb-2 scrollbar-hide">
             {categories.map((cat) => (
               <button
@@ -207,7 +212,7 @@ export default function HotelsPage() {
       </div>
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 mt-8">
-        {/* SECTION: EDITOR'S PICK (ICON CHANGED) */}
+        {/* SECTION: EDITOR'S PICK (Hanya tampil jika TIDAK search) */}
         {!loading &&
           topRecommendations.length > 0 &&
           searchTerm === "" &&
@@ -270,10 +275,9 @@ export default function HotelsPage() {
             </div>
           )}
 
-        {/* --- NEW FEATURE: PROMO BANNER --- */}
+        {/* --- PROMO BANNER --- */}
         {!loading && (
           <div className="relative bg-gradient-to-r from-gray-900 to-gray-800 rounded-3xl p-8 mb-12 overflow-hidden shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
-            {/* Pattern */}
             <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2"></div>
             <div className="relative z-10 text-white">
               <div className="flex items-center gap-2 mb-2 text-primary font-bold text-sm uppercase tracking-widest">
@@ -331,7 +335,7 @@ export default function HotelsPage() {
             <button
               onClick={() => {
                 setSearchTerm("");
-                setPriceRange(15000000);
+                setPriceRange(50000000); // Reset ke Max
                 setActiveCategory("Semua");
               }}
               className="px-6 py-2.5 bg-primary text-white rounded-xl font-bold hover:bg-primary-dark transition shadow-lg shadow-primary/30 active:scale-95"
@@ -341,78 +345,94 @@ export default function HotelsPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {filteredSuites.map((suite) => (
-              <Link
-                to={`/suites/${suite._id}`}
-                key={suite._id}
-                className="group bg-white rounded-3xl p-3 shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 border border-gray-100 flex flex-col h-full"
-              >
-                {/* Image */}
-                <div className="relative h-60 rounded-[1.2rem] overflow-hidden mb-4">
-                  <img
-                    src={getImageUrl(suite.images?.[0])}
-                    alt={suite.name}
-                    className="w-full h-full object-cover group-hover:scale-110 transition duration-700"
-                  />
-                  <div className="absolute top-3 right-3 bg-white/95 backdrop-blur text-xs font-bold px-2.5 py-1 rounded-lg shadow-sm flex items-center gap-1 text-gray-800">
-                    <Star
-                      size={12}
-                      className="text-yellow-500 fill-yellow-500"
-                    />{" "}
-                    4.8
-                  </div>
-                  <div className="absolute bottom-3 left-3">
-                    <span className="bg-black/60 backdrop-blur-md text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider border border-white/10">
-                      {suite.type}
-                    </span>
-                  </div>
-                </div>
+            {filteredSuites.map((suite) => {
+              // Check if this suite is a Top Tier one
+              const isTopTier = topRecommendationIds.has(suite._id);
 
-                {/* Content */}
-                <div className="px-2 pb-2 flex flex-col flex-grow">
-                  <div className="mb-3">
-                    <h3 className="text-lg font-bold text-gray-900 line-clamp-1 group-hover:text-primary transition-colors">
-                      {suite.name}
-                    </h3>
-                    <p className="text-xs text-gray-500 flex items-center gap-1 mt-1">
-                      <MapPin size={12} className="text-primary" />{" "}
-                      {suite.location}
-                    </p>
-                  </div>
+              return (
+                <Link
+                  to={`/suites/${suite._id}`}
+                  key={suite._id}
+                  className="group bg-white rounded-3xl p-3 shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 border border-gray-100 flex flex-col h-full relative"
+                >
+                  {/* Image */}
+                  <div className="relative h-60 rounded-[1.2rem] overflow-hidden mb-4">
+                    <img
+                      src={getImageUrl(suite.images?.[0])}
+                      alt={suite.name}
+                      className="w-full h-full object-cover group-hover:scale-110 transition duration-700"
+                    />
+                    
+                    {/* PERBAIKAN 2: Badge Top Tier untuk List Biasa */}
+                    {isTopTier && (
+                       <div className="absolute top-3 left-3 z-10">
+                          <span className="bg-primary/90 backdrop-blur-md text-white text-[10px] font-bold px-2 py-1 rounded-lg uppercase tracking-wider shadow-lg flex items-center gap-1">
+                             <Crown size={10} /> Top Tier
+                          </span>
+                       </div>
+                    )}
 
-                  {/* Amenities Badges */}
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    <span className="text-[10px] font-medium bg-gray-50 text-gray-600 px-2 py-1 rounded-md border border-gray-100 flex items-center gap-1">
-                      <Wifi size={10} /> Wifi
-                    </span>
-                    <span className="text-[10px] font-medium bg-gray-50 text-gray-600 px-2 py-1 rounded-md border border-gray-100 flex items-center gap-1">
-                      <Coffee size={10} /> Breakfast
-                    </span>
-                    <span className="text-[10px] font-medium bg-gray-50 text-gray-600 px-2 py-1 rounded-md border border-gray-100 flex items-center gap-1">
-                      <CheckCircle2 size={10} /> Refundable
-                    </span>
-                  </div>
-
-                  {/* Price & Action */}
-                  <div className="mt-auto flex items-center justify-between border-t border-gray-100 pt-3">
-                    <div>
-                      <p className="text-[10px] text-gray-400 line-through">
-                        Rp {(suite.price * 1.2).toLocaleString()}
-                      </p>
-                      <p className="text-lg font-bold text-primary">
-                        Rp {suite.price.toLocaleString()}
-                      </p>
+                    <div className="absolute top-3 right-3 bg-white/95 backdrop-blur text-xs font-bold px-2.5 py-1 rounded-lg shadow-sm flex items-center gap-1 text-gray-800 z-10">
+                      <Star
+                        size={12}
+                        className="text-yellow-500 fill-yellow-500"
+                      />{" "}
+                      4.8
                     </div>
-                    <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-primary group-hover:text-white transition-all shadow-sm group-hover:shadow-primary/30">
-                      <ArrowRight
-                        size={18}
-                        className="-rotate-45 group-hover:rotate-0 transition-transform duration-300"
-                      />
+                    
+                    <div className="absolute bottom-3 left-3">
+                      <span className="bg-black/60 backdrop-blur-md text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider border border-white/10">
+                        {suite.type}
+                      </span>
                     </div>
                   </div>
-                </div>
-              </Link>
-            ))}
+
+                  {/* Content */}
+                  <div className="px-2 pb-2 flex flex-col flex-grow">
+                    <div className="mb-3">
+                      <h3 className="text-lg font-bold text-gray-900 line-clamp-1 group-hover:text-primary transition-colors">
+                        {suite.name}
+                      </h3>
+                      <p className="text-xs text-gray-500 flex items-center gap-1 mt-1">
+                        <MapPin size={12} className="text-primary" />{" "}
+                        {suite.location}
+                      </p>
+                    </div>
+
+                    {/* Amenities Badges */}
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      <span className="text-[10px] font-medium bg-gray-50 text-gray-600 px-2 py-1 rounded-md border border-gray-100 flex items-center gap-1">
+                        <Wifi size={10} /> Wifi
+                      </span>
+                      <span className="text-[10px] font-medium bg-gray-50 text-gray-600 px-2 py-1 rounded-md border border-gray-100 flex items-center gap-1">
+                        <Coffee size={10} /> Breakfast
+                      </span>
+                      <span className="text-[10px] font-medium bg-gray-50 text-gray-600 px-2 py-1 rounded-md border border-gray-100 flex items-center gap-1">
+                        <CheckCircle2 size={10} /> Refundable
+                      </span>
+                    </div>
+
+                    {/* Price & Action */}
+                    <div className="mt-auto flex items-center justify-between border-t border-gray-100 pt-3">
+                      <div>
+                        <p className="text-[10px] text-gray-400 line-through">
+                          Rp {(suite.price * 1.2).toLocaleString()}
+                        </p>
+                        <p className="text-lg font-bold text-primary">
+                          Rp {suite.price.toLocaleString()}
+                        </p>
+                      </div>
+                      <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-primary group-hover:text-white transition-all shadow-sm group-hover:shadow-primary/30">
+                        <ArrowRight
+                          size={18}
+                          className="-rotate-45 group-hover:rotate-0 transition-transform duration-300"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         )}
       </div>
