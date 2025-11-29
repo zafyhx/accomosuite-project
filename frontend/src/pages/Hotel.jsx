@@ -48,9 +48,13 @@ export default function HotelsPage() {
   ];
 
   // Helper: Image URL Fixer
+  const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
   const getImageUrl = (path) => {
     if (!path) return "https://via.placeholder.com/600x400?text=No+Image";
-    return path.startsWith("http") ? path : `http://localhost:5000${path}`;
+    // Jika path sudah ada http (link online), pakai itu.
+    // Jika tidak, gabungkan dengan URL Railway/Localhost.
+    return path.startsWith("http") ? path : `${API_BASE_URL}${path}`;
   };
 
   // 1. Initial Fetch & URL Params
@@ -91,7 +95,7 @@ export default function HotelsPage() {
     // Filter by Price
     result = result.filter((suite) => suite.price <= priceRange);
 
-    // Filter by Category 
+    // Filter by Category
     if (activeCategory !== "Semua") {
       // Asumsi: di database ada field 'type'. Jika tidak, filter ini hanya visual dummy.
       // Kita gunakan toLowerCase() agar tidak sensitif huruf besar/kecil
