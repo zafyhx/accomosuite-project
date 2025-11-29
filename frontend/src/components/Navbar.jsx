@@ -23,7 +23,7 @@ const Navbar = () => {
 
   const navBg = transparentMode
     ? "bg-transparent"
-    : "bg-white/50 backdrop-blur-md shadow-sm";
+    : "bg-white/90 backdrop-blur-md shadow-sm"; // Update: opacity 90 biar lebih jelas
   const textColor = transparentMode ? "text-white" : "text-secondary";
   const lineColor = transparentMode ? "bg-white" : "bg-primary";
 
@@ -52,24 +52,26 @@ const Navbar = () => {
     <nav
       className={`fixed top-0 w-full z-50 transition-all duration-300 ${navBg}`}
     >
-      {/* CONTAINER */}
-      <div className="container mx-auto px-8 py-5 flex items-center justify-between relative">
+      <div className="container mx-auto px-4 md:px-8 py-3 md:py-5 flex items-center justify-between relative">
         {/* 1. LOGO & BRAND */}
-        <Link to="/" className="flex items-center gap-3 group z-20 relative">
+        <Link
+          to="/"
+          className="flex items-center gap-2 md:gap-3 group z-20 relative shrink-0"
+        >
           <img
             src={LogoImage}
             alt="Accomosuite Logo"
-            className="h-11 w-auto object-contain transition-transform group-hover:scale-105"
+            className="h-8 md:h-11 w-auto object-contain transition-transform group-hover:scale-105"
           />
-          {/* Font */}
+
           <span
-            className={`text-2xl font-bold ${textColor} tracking-tight pb-1`}
+            className={`text-lg md:text-2xl font-bold ${textColor} tracking-tight pb-0.5`}
           >
             Accomosuite
           </span>
         </Link>
 
-        {/* 2. MENU TENGAH */}
+        {/* 2. MENU TENGAH (Desktop Only - Absolute Center) */}
         <div className="hidden md:flex gap-12 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
           <NavLink to="/" label="Home" />
           <NavLink to="/hotel" label="Hotels" />
@@ -77,10 +79,10 @@ const Navbar = () => {
           <NavLink to="/contact" label="Contacts" />
         </div>
 
-        {/* 3. USER/LOGIN */}
-        <div className="flex items-center gap-5 z-20 relative">
+        {/* 3. USER/LOGIN & HAMBURGER */}
+        <div className="flex items-center gap-3 md:gap-5 z-20 relative">
           {user ? (
-            <div className={`flex items-center gap-4 ${textColor}`}>
+            <div className={`flex items-center gap-2 md:gap-4 ${textColor}`}>
               <div className="hidden md:block text-right leading-tight">
                 <p className="text-base font-bold">{user.name}</p>
                 <p className="text-xs opacity-80 uppercase font-semibold tracking-wider">
@@ -89,27 +91,27 @@ const Navbar = () => {
               </div>
 
               <div
-                className={`w-10 h-10 rounded-full flex items-center justify-center border ${
+                className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center border ${
                   transparentMode
                     ? "border-white/50 bg-white/10"
                     : "border-gray-200 bg-gray-50"
                 }`}
               >
-                <User size={20} />
+                <User size={18} className="md:w-5 md:h-5" />
               </div>
 
               <button
                 onClick={handleLogout}
-                className="ml-1 text-red-500 hover:text-red-600 hover:bg-red-50 p-2 rounded-full transition"
+                className="ml-1 text-red-500 hover:text-red-600 hover:bg-red-50 p-1.5 md:p-2 rounded-full transition"
                 title="Logout"
               >
-                <LogOut size={20} />
+                <LogOut size={18} className="md:w-5 md:h-5" />
               </button>
             </div>
           ) : (
             <Link
               to="/login"
-              className="bg-primary hover:bg-primary-dark text-white px-7 py-3 rounded-full font-bold text-base transition shadow-lg shadow-primary/30 active:scale-95"
+              className="bg-primary hover:bg-primary-dark text-white px-4 py-2 md:px-7 md:py-3 rounded-full font-bold text-xs md:text-base transition shadow-lg shadow-primary/30 active:scale-95"
             >
               Login
             </Link>
@@ -117,10 +119,10 @@ const Navbar = () => {
 
           {/* Hamburger Mobile */}
           <button
-            className={`md:hidden ${textColor} p-1`}
+            className={`md:hidden ${textColor} p-1 focus:outline-none`}
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           >
-            <Menu size={28} />
+            <Menu size={24} />
           </button>
         </div>
       </div>
