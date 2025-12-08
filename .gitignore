@@ -5,3 +5,4 @@ dist/
 build/
 context-generator.js
 FULL_PROJECT_CONTEXT.txt
+BugReport.md
