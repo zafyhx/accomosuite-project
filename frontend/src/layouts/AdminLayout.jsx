@@ -100,7 +100,7 @@ const AdminLayout = () => {
           <div className="h-20 flex items-center justify-between px-8 border-b border-gray-100">
             <Link to="/" className="flex items-center gap-2">
               <div className="flex items-center gap-2 text-primary font-bold text-2xl tracking-tight">
-                <ShieldAlert className="fill-current" /> Admin
+                <ShieldAlert className="fill-current" /> Accomosuite
               </div>
             </Link>
             {/* Tombol Close (Hanya di Mobile) */}

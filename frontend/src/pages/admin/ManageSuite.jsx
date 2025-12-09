@@ -17,7 +17,7 @@ const ManageSuites = () => {
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
 
-  // FIX: Helper untuk mendapatkan URL gambar (Localhost & Live)
+  // Helper untuk mendapatkan URL gambar
   const getImageUrl = (path) => {
     if (!path) return "https://via.placeholder.com/600x400?text=No+Image";
     const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
@@ -27,7 +27,6 @@ const ManageSuites = () => {
   const fetchSuites = async () => {
     try {
       setLoading(true);
-      // Endpoint admin biasanya sama dengan endpoint publik
       const { data } = await axios.get("/api/suites");
       setSuites(data);
     } catch (error) {
@@ -46,11 +45,10 @@ const ManageSuites = () => {
     if (window.confirm("Yakin ingin menghapus properti ini?")) {
       try {
         const config = {
-          // WAJIB: Kirim token admin untuk DELETE
           headers: { Authorization: `Bearer ${user.token}` },
         };
         await axios.delete(`/api/suites/${id}`, config);
-        fetchSuites(); // Refresh data
+        fetchSuites();
       } catch (error) {
         alert(
           "Gagal menghapus: " +
@@ -71,7 +69,7 @@ const ManageSuites = () => {
           </p>
         </div>
         <button
-          onClick={() => navigate("/admin/suites/new")} // Rute ke form tambah baru
+          onClick={() => navigate("/admin/suites/new")}
           className="bg-primary hover:bg-primary-dark text-white px-5 py-2.5 rounded-xl flex items-center gap-2 transition font-bold shadow-lg shadow-primary/30 active:scale-95"
         >
           <Plus size={20} /> Tambah Properti
@@ -103,7 +101,6 @@ const ManageSuites = () => {
                       <td className="py-4 px-6 align-middle">
                         {suite.images && suite.images[0] ? (
                           <img
-                            // FIX: Gunakan helper getImageUrl disini
                             src={getImageUrl(suite.images[0])}
                             alt={suite.name}
                             className="w-20 h-14 object-cover rounded-lg shadow-sm border border-gray-100"
@@ -124,6 +121,7 @@ const ManageSuites = () => {
                         </div>
                       </td>
                       <td className="py-4 px-6 align-middle">
+                        {/* UPDATE LOGIKA WARNA BADGE DISINI */}
                         <span
                           className={`px-3 py-1 rounded-full text-xs font-bold border
                           ${
@@ -131,6 +129,8 @@ const ManageSuites = () => {
                               ? "bg-purple-50 text-purple-700 border-purple-100"
                               : suite.type === "Hotel"
                               ? "bg-blue-50 text-blue-700 border-blue-100"
+                              : suite.type === "Cottage"
+                              ? "bg-yellow-50 text-yellow-700 border-yellow-200" // <-- TAMBAHAN KUNING UTK COTTAGE
                               : "bg-green-50 text-green-700 border-green-100"
                           }`}
                         >
@@ -142,7 +142,6 @@ const ManageSuites = () => {
                       </td>
                       <td className="py-4 px-6 text-center align-middle">
                         <div className="flex items-center justify-center gap-2">
-                          {/* Tombol Edit - Sekarang mengarah ke form dengan ID */}
                           <button
                             onClick={() =>
                               navigate(`/admin/suites/edit/${suite._id}`)
@@ -166,7 +165,10 @@ const ManageSuites = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="5" className="p-12 text-center text-gray-500">
+                    <td
+                      colSpan="5"
+                      className="p-12 text-center text-gray-500"
+                    >
                       <div className="flex flex-col items-center justify-center">
                         <div className="bg-gray-100 p-4 rounded-full mb-3">
                           <Plus size={32} className="text-gray-400" />
