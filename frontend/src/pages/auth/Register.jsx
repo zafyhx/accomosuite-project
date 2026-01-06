@@ -1,5 +1,5 @@
 import axios from "axios";
-import { Loader2, Lock, Mail, Phone, User } from "lucide-react"; // Gunakan Lucide React
+import { Loader2, Lock, Mail, Phone, User } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
@@ -8,11 +8,12 @@ const Register = () => {
     name: "",
     email: "",
     password: "",
-    phone: "", // Tambahkan field phone sesuai backend
+    phone: "",
   });
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const BASE_URL = import.meta.env.VITE_API_URL;
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -24,20 +25,19 @@ const Register = () => {
     setError(null);
 
     try {
-      // Panggil API register yang Anda buat di backend (asumsi: /api/auth/register)
+      console.log("Registering to:", `${BASE_URL}/api/auth/register`); 
+
       const response = await axios.post(
-        "http://localhost:5000/api/auth/register",
+        `${BASE_URL}/api/auth/register`, 
         formData
       );
 
-      // Logika Sukses: Arahkan ke halaman login
       alert("Registrasi berhasil! Silakan login.");
       navigate("/login");
     } catch (err) {
-      // Logika Gagal: Tampilkan pesan error dari backend (misal: Email sudah terdaftar)
       const errorMessage =
         err.response?.data?.message ||
-        "Registrasi gagal. Coba cek koneksi server (Port 5000).";
+        "Registrasi gagal. Coba cek koneksi server.";
       setError(errorMessage);
       console.error("Register failed:", err);
     } finally {
