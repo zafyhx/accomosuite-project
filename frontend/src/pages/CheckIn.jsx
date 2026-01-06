@@ -19,7 +19,7 @@ const CheckIn = () => {
 
   const [loading, setLoading] = useState(false);
   const [booking, setBooking] = useState(null);
-  
+
   // Update State: Tambahkan identityName
   const [formData, setFormData] = useState({
     identityName: "", // Field baru
@@ -42,7 +42,7 @@ const CheckIn = () => {
         if (currentBooking) {
           setBooking(currentBooking);
           // Opsional: Pre-fill nama dari akun user jika ingin memudahkan
-          setFormData(prev => ({ ...prev, identityName: user?.name || "" }));
+          setFormData((prev) => ({ ...prev, identityName: user?.name || "" }));
         } else {
           alert("Booking tidak ditemukan");
           navigate("/my-bookings");
@@ -94,17 +94,17 @@ const CheckIn = () => {
     }
   };
 
-  if (!booking) return (
-    <div className="min-h-screen pt-32 flex justify-center items-center">
-      <Loader2 className="animate-spin text-primary" /> Memuat data...
-    </div>
-  );
+  if (!booking)
+    return (
+      <div className="min-h-screen pt-32 flex justify-center items-center">
+        <Loader2 className="animate-spin text-primary" /> Memuat data...
+      </div>
+    );
 
   return (
     // Container utama dengan padding-top agar tidak tertutup navbar fixed
     <div className="min-h-screen bg-gray-50 pt-28 pb-12 px-4 sm:px-6">
       <div className="max-w-2xl mx-auto bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
-        
         {/* Header Biru */}
         <div className="bg-primary p-6 text-white flex items-center gap-4 shadow-md relative z-10">
           <button
@@ -120,7 +120,7 @@ const CheckIn = () => {
           {/* Card Detail Reservasi */}
           <div className="mb-8 bg-blue-50/50 p-6 rounded-2xl border border-blue-100/50 shadow-sm">
             <h3 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
-              <FileText size={18} className="text-primary"/> Detail Reservasi
+              <FileText size={18} className="text-primary" /> Detail Reservasi
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
               <div className="bg-white p-3 rounded-xl border border-blue-50">
@@ -139,7 +139,6 @@ const CheckIn = () => {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            
             {/* Input Nama Identitas (BARU) */}
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-2">
@@ -213,11 +212,12 @@ const CheckIn = () => {
               <label className="block text-sm font-bold text-gray-700 mb-2">
                 Upload Foto Identitas
               </label>
-              <div 
+              <div
                 className={`border-2 border-dashed rounded-2xl p-8 text-center transition-all cursor-pointer group
-                  ${preview 
-                    ? "border-primary/50 bg-primary/5" 
-                    : "border-gray-300 hover:border-primary hover:bg-gray-50"
+                  ${
+                    preview
+                      ? "border-primary/50 bg-primary/5"
+                      : "border-gray-300 hover:border-primary hover:bg-gray-50"
                   }`}
               >
                 {preview ? (
@@ -273,7 +273,8 @@ const CheckIn = () => {
                 </>
               ) : (
                 <>
-                  <CheckCircle className="fill-white text-primary" /> Konfirmasi Check-in
+                  <CheckCircle className="fill-white text-primary" /> Konfirmasi
+                  Check-in
                 </>
               )}
             </button>

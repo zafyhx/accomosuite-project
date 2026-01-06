@@ -165,10 +165,7 @@ const ManageSuites = () => {
                   ))
                 ) : (
                   <tr>
-                    <td
-                      colSpan="5"
-                      className="p-12 text-center text-gray-500"
-                    >
+                    <td colSpan="5" className="p-12 text-center text-gray-500">
                       <div className="flex flex-col items-center justify-center">
                         <div className="bg-gray-100 p-4 rounded-full mb-3">
                           <Plus size={32} className="text-gray-400" />

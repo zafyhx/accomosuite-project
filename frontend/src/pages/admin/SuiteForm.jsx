@@ -1,7 +1,7 @@
 import axios from "axios";
+import { ArrowLeft, Loader2, Save, Upload, X } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Loader2, Save, Upload, X } from "lucide-react";
 import { AuthContext } from "../../context/AuthContext.jsx";
 
 const SuiteForm = () => {
@@ -148,9 +148,7 @@ const SuiteForm = () => {
       console.error("Gagal menyimpan data:", err.response || err);
       // Menampilkan pesan error detail dari backend
       const serverMessage =
-        err.response?.data?.message ||
-        err.response?.data?.error ||
-        err.message;
+        err.response?.data?.message || err.response?.data?.error || err.message;
       setError(`Gagal menyimpan data. Server merespon: ${serverMessage}`);
     } finally {
       setIsSaving(false);
