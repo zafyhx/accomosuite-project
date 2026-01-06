@@ -14,67 +14,90 @@ import {
   Wifi,
   Wind,
 } from "lucide-react";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 
 const SuiteDetail = () => {
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const { user } = useContext(AuthContext);
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const { user } = useContext(AuthContext);
 
-  const [suite, setSuite] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [isBooking, setIsBooking] = useState(false);
+  const [suite, setSuite] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [isBooking, setIsBooking] = useState(false);
 
-  // --- IMAGE FIXER HELPER ---
-  const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+  // --- IMAGE FIXER HELPER ---
+  const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-  const getImageUrl = (path) => {
-    if (!path) return "https://via.placeholder.com/800x400?text=No+Image";
-    return path.startsWith("http") ? path : `${API_BASE_URL}${path}`;
-  };
-  // --------------------------
+  const getImageUrl = (path) => {
+    if (!path) return "https://via.placeholder.com/800x400?text=No+Image";
+    return path.startsWith("http") ? path : `${API_BASE_URL}${path}`;
+  };
+  // --------------------------
 
-  // --- STATE FORM ---
-  const [checkIn, setCheckIn] = useState("");
-  const [checkOut, setCheckOut] = useState("");
-  const [guests, setGuests] = useState(1);
-  const [totalDays, setTotalDays] = useState(0);
+  // --- HELPER FUNCTIONS UNTUK VALIDASI TANGGAL ---
+  const todayDate = useMemo(() => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    const formatted = `${year}-${month}-${day}`;
+    console.log('📅 Today Date for min attribute:', formatted);
+    return formatted;
+  }, []);
 
-  // State Data Tamu (Fitur dari referensi lama Anda)
-  const [guestInfo, setGuestInfo] = useState({
-    fullName: user?.name || "",
-    email: user?.email || "",
-    phone: user?.phone || "",
-    specialRequests: "",
-  });
+  const getMinCheckoutDate = (checkInDate) => {
+    if (!checkInDate) return todayDate;
+    
+    const checkIn = new Date(checkInDate);
+    checkIn.setDate(checkIn.getDate() + 1);
+    
+    const year = checkIn.getFullYear();
+    const month = String(checkIn.getMonth() + 1).padStart(2, '0');
+    const day = String(checkIn.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+  // --------------------------------------------
 
-  // 1. Ambil Data Detail Kamar
-  useEffect(() => {
-    const fetchSuite = async () => {
-      try {
-        const { data } = await axios.get(`/api/suites/${id}`);
-        setSuite(data);
-      } catch (error) {
-        console.error("Gagal ambil data", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchSuite();
-  }, [id]);
+  // --- STATE FORM ---
+  const [checkIn, setCheckIn] = useState("");
+  const [checkOut, setCheckOut] = useState("");
+  const [guests, setGuests] = useState(1);
+  const [totalDays, setTotalDays] = useState(0);
+  const [dateError, setDateError] = useState("");
 
-  // Update Guest Info saat user login
-  useEffect(() => {
-    if (user) {
-      setGuestInfo((prev) => ({
-        ...prev,
-        fullName: user.name,
-        email: user.email,
-      }));
-    }
-  }, [user]);
+  // State Data Tamu (Fitur dari referensi lama Anda)
+  const [guestInfo, setGuestInfo] = useState({
+    fullName: user?.name || "",
+    email: user?.email || "",
+    phone: user?.phone || "",
+    specialRequests: "",
+  });
+
+  // 1. Ambil Data Detail Kamar
+  useEffect(() => {
+    const fetchSuite = async () => {
+      try {
+        const { data } = await axios.get(`/api/suites/${id}`);
+        setSuite(data);
+      } catch (error) {
+        console.error("Gagal ambil data", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchSuite();
+  }, [id]);
+  // Update Guest Info saat user login
+  useEffect(() => {
+    if (user) {
+      setGuestInfo((prev) => ({
+        ...prev,
+        fullName: user.name,
+        email: user.email,
+      }));
+    }  }, [user]);
 
   // 2. Hitung Durasi
   useEffect(() => {
@@ -98,19 +121,56 @@ const SuiteDetail = () => {
     setGuestInfo({ ...guestInfo, [e.target.name]: e.target.value });
   };
 
-  // 3. Handle Booking
-  const handleBooking = async (e) => {
-    e.preventDefault();
+  // Handler untuk Check-In Date
+  const handleCheckInChange = (e) => {
+    const newCheckIn = e.target.value;
+    setCheckIn(newCheckIn);
+    setDateError("");
+    
+    // Reset check-out jika lebih kecil dari check-in baru
+    if (checkOut && newCheckIn >= checkOut) {
+      setCheckOut("");
+    }
+  };
 
-    if (!user) {
-      alert("Silakan login terlebih dahulu untuk memesan!");
-      navigate("/login");
-      return;
-    }
-    if (totalDays === 0) {
-      alert("Mohon pilih tanggal Check-in dan Check-out dengan benar.");
-      return;
-    }
+  // Handler untuk Check-Out Date
+  const handleCheckOutChange = (e) => {
+    const newCheckOut = e.target.value;
+    
+    if (checkIn && newCheckOut <= checkIn) {
+      setDateError("Tanggal check-out harus setelah tanggal check-in");
+      return;
+    }
+    
+    setCheckOut(newCheckOut);
+    setDateError("");
+  };
+
+  // 3. Handle Booking
+  const handleBooking = async (e) => {
+    e.preventDefault();
+
+    if (!user) {
+      alert("Silakan login terlebih dahulu untuk memesan!");
+      navigate("/login");
+      return;
+    }
+
+    // Validasi tanggal
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const checkInDate = new Date(checkIn);
+    const checkOutDate = new Date(checkOut);
+    
+    if (checkInDate < today) {
+      setDateError("Tanggal check-in tidak boleh di masa lampau");
+      return;
+    }
+    
+    if (checkOutDate <= checkInDate) {
+      setDateError("Tanggal check-out harus setelah tanggal check-in");
+      return;
+    }
 
     try {
       setIsBooking(true);
@@ -342,70 +402,68 @@ const SuiteDetail = () => {
               </div>
 
               <form onSubmit={handleBooking} className="space-y-4">
-                {/* Input Tanggal */}
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="text-xs font-bold text-gray-500 uppercase">
-                      Check-In
-                    </label>
-                    <input
-                      type="date"
-                      className="w-full p-2 border rounded-lg text-sm focus:ring-2 focus:ring-primary outline-none"
-                      value={checkIn}
-                      onChange={(e) => setCheckIn(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs font-bold text-gray-500 uppercase">
-                      Check-Out
-                    </label>
-                    <input
-                      type="date"
-                      className="w-full p-2 border rounded-lg text-sm focus:ring-2 focus:ring-primary outline-none"
-                      value={checkOut}
-                      onChange={(e) => setCheckOut(e.target.value)}
-                      required
-                    />
-                  </div>
-                </div>
+                {/* Error Message */}
+                {dateError && (
+                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm flex items-center gap-2">
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                    </svg>
+                    {dateError}
+                  </div>
+                )}
 
-                {/* Input Tamu */}
-                <div>
-                  <label className="text-xs font-bold text-gray-500 uppercase">
-                    Jumlah Tamu
-                  </label>
-                  <div className="flex items-center border rounded-lg px-3 py-2 mt-1">
-                    <Users size={16} className="text-gray-400 mr-2" />
-                    <input
-                      type="number"
-                      min="1"
-                      max={suite.capacity}
-                      className="w-full text-sm outline-none"
-                      value={guests}
-                      onChange={(e) => setGuests(e.target.value)}
-                    />
-                  </div>
-                </div>
+                {/* Input Tanggal */}
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-xs font-bold text-gray-500 uppercase">
+                      Check-In
+                    </label>
+                    <input
+                      type="date"
+                      className="w-full p-2 border rounded-lg text-sm focus:ring-2 focus:ring-primary outline-none"
+                      value={checkIn}
+                      onChange={handleCheckInChange}
+                      min={todayDate}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-gray-500 uppercase">
+                      Check-Out
+                    </label>
+                    <input
+                      type="date"
+                      className="w-full p-2 border rounded-lg text-sm focus:ring-2 focus:ring-primary outline-none"
+                      value={checkOut}
+                      onChange={handleCheckOutChange}
+                      min={getMinCheckoutDate(checkIn)}
+                      required
+                    />
+                  </div>
+                </div>
 
-                {/* Ringkasan Harga */}
-                {totalDays > 0 && (
-                  <div className="bg-gray-50 rounded-xl p-4 space-y-3 mt-4 border border-gray-100">
-                    <h4 className="font-bold text-secondary text-sm flex items-center gap-2">
-                      <CreditCard size={14} /> Ringkasan Biaya
-                    </h4>
+                {/* Input Jumlah Tamu */}
+                <div>
+                  <label className="text-xs font-bold text-gray-500 uppercase mb-2 block">
+                    Jumlah Tamu
+                  </label>
+                  <div className="flex items-center border rounded-lg p-3 focus-within:ring-2 focus-within:ring-primary">
+                    <Users size={16} className="text-gray-400 mr-2" />
+                    <input
+                      type="number"
+                      min="1"
+                      max={suite.capacity}
+                      className="w-full text-sm outline-none"
+                      value={guests}
+                      onChange={(e) => setGuests(e.target.value)}
+                      required
+                    />
+                  </div>
+                </div>
 
-                    <div className="flex justify-between text-sm text-gray-600">
-                      <span>
-                        {suite.price.toLocaleString()} x {totalDays} malam
-                      </span>
-                      <span>Rp {roomPriceTotal.toLocaleString()}</span>
-                    </div>
-
-                    <div className="flex justify-between text-sm text-gray-600">
-                      <span>Biaya Layanan & Kebersihan</span>
-                      <span>Rp {serviceFee.toLocaleString()}</span>
-                    </div>
+                {/* Ringkasan Harga */}
+                {totalDays > 0 && (
+                  <div className="bg-gray-50 p-4 rounded-lg space-y-2 border border-gray-100">
 
                     <div className="h-px bg-gray-300 my-1"></div>
 

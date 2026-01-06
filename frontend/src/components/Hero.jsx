@@ -1,7 +1,7 @@
 import { Calendar, MapPin, Search, Users } from "lucide-react";
-import { useState, useEffect, useRef } from "react"; // Tambah useEffect & useRef
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios"; // Pastikan install axios: npm install axios
+import axios from "axios";
 
 const Hero = () => {
   const navigate = useNavigate();
@@ -13,9 +13,31 @@ const Hero = () => {
   const [guests, setGuests] = useState(2);
 
   // --- STATE BARU (UNTUK SEARCH & DB) ---
-  const [dbLocations, setDbLocations] = useState([]); // Data dari database
+  const [dbLocations, setDbLocations] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
-  const searchContainerRef = useRef(null); // Ref untuk deteksi klik luar
+  const searchContainerRef = useRef(null);
+
+  // --- HELPER FUNCTIONS UNTUK VALIDASI TANGGAL ---
+  const todayDate = useMemo(() => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }, []);
+
+  const getMinCheckoutDate = (checkInDate) => {
+    if (!checkInDate) return todayDate;
+    
+    const checkIn = new Date(checkInDate);
+    checkIn.setDate(checkIn.getDate() + 1);
+    
+    const year = checkIn.getFullYear();
+    const month = String(checkIn.getMonth() + 1).padStart(2, '0');
+    const day = String(checkIn.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+  // --------------------------------------------
 
   // 1. Ambil data dari Database saat load (Logika dari kode referensi)
   useEffect(() => {
@@ -159,7 +181,7 @@ const Hero = () => {
                 {/* Divider */}
                 <div className="hidden lg:block w-px bg-gray-200" />
 
-                {/* Check In (TIDAK BERUBAH) */}
+                {/* Check In */}
                 <div className="flex-1 flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-50 transition-colors group">
                   <Calendar className="text-primary flex-shrink-0" size={20} />
                   <div className="flex-1 min-w-0">
@@ -169,7 +191,14 @@ const Hero = () => {
                     <input
                       type="date"
                       value={checkIn}
-                      onChange={(e) => setCheckIn(e.target.value)}
+                      onChange={(e) => {
+                        const newCheckIn = e.target.value;
+                        setCheckIn(newCheckIn);
+                        if (checkOut && newCheckIn >= checkOut) {
+                          setCheckOut("");
+                        }
+                      }}
+                      min={todayDate}
                       className="w-full bg-transparent border-0 outline-none text-gray-900 font-medium"
                     />
                   </div>
@@ -178,7 +207,7 @@ const Hero = () => {
                 {/* Divider */}
                 <div className="hidden lg:block w-px bg-gray-200" />
 
-                {/* Check Out (TIDAK BERUBAH) */}
+                {/* Check Out */}
                 <div className="flex-1 flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-50 transition-colors group">
                   <Calendar className="text-primary flex-shrink-0" size={20} />
                   <div className="flex-1 min-w-0">
@@ -189,6 +218,7 @@ const Hero = () => {
                       type="date"
                       value={checkOut}
                       onChange={(e) => setCheckOut(e.target.value)}
+                      min={getMinCheckoutDate(checkIn)}
                       className="w-full bg-transparent border-0 outline-none text-gray-900 font-medium"
                     />
                   </div>

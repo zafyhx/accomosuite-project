@@ -13,11 +13,61 @@ const createBooking = async (req, res) => {
             return res.status(400).json({ message: 'Data booking tidak lengkap' });
         }
 
+        // === VALIDASI TANGGAL ===
+        
+        // Parse tanggal dari string
+        const checkInDate = new Date(checkIn);
+        const checkOutDate = new Date(checkOut);
+        
+        // Set waktu ke 00:00:00 untuk perbandingan yang adil
+        checkInDate.setHours(0, 0, 0, 0);
+        checkOutDate.setHours(0, 0, 0, 0);
+        
+        // Dapatkan tanggal hari ini
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        // Debug logging
+        console.log('🔍 Date Validation:', {
+            checkIn: checkIn,
+            checkOut: checkOut,
+            checkInDate: checkInDate.toISOString(),
+            todayDate: today.toISOString(),
+            isPastDate: checkInDate < today
+        });
+        
+        // VALIDASI 1: Check-in tidak boleh di masa lampau
+        if (checkInDate < today) {
+            console.log('❌ Booking ditolak: Check-in di masa lampau');
+            return res.status(400).json({ 
+                message: 'Tanggal check-in tidak boleh di masa lampau' 
+            });
+        }
+        
+        // VALIDASI 2: Check-out harus setelah check-in
+        if (checkOutDate <= checkInDate) {
+            return res.status(400).json({ 
+                message: 'Tanggal check-out harus setelah tanggal check-in' 
+            });
+        }
+        
+        // VALIDASI TAMBAHAN: Booking maksimal 1 tahun ke depan (opsional)
+        const maxAdvanceBooking = new Date(today);
+        maxAdvanceBooking.setFullYear(maxAdvanceBooking.getFullYear() + 1);
+        
+        if (checkInDate > maxAdvanceBooking) {
+            return res.status(400).json({ 
+                message: 'Pemesanan maksimal 1 tahun ke depan' 
+            });
+        }
+        
+        // === END VALIDASI TANGGAL ===
+
         const booking = new Booking({
             user: req.user._id, 
             suite: suiteId,
-            checkInDate: checkIn,
-            checkOutDate: checkOut,
+            checkInDate: checkInDate,
+            checkOutDate: checkOutDate,
             totalDays,
             totalPrice,
             guests,
