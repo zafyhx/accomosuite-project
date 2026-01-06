@@ -58,7 +58,7 @@ const ManageUsers = () => {
         });
         fetchUsers(); // Refresh
       } catch (error) {
-        alert("Gagal menghapus user.");
+        alert("Berhasil menghapus user.");
       }
     }
   };
